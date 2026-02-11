@@ -1,0 +1,900 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>家族カレンダー</title>
+<style>
+  :root {
+    --papa-color: #4285f4;
+    --mama-color: #ea4335;
+    --child-color: #34a853;
+    --bg: #f8f9fa;
+    --card-bg: #fff;
+    --border: #e0e0e0;
+    --text: #333;
+    --text-light: #666;
+    --shadow: 0 2px 8px rgba(0,0,0,0.1);
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Hiragino Sans', 'Noto Sans JP', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+  }
+
+  /* ===== ログイン画面 ===== */
+  #login-screen {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  }
+
+  .login-box {
+    background: var(--card-bg);
+    border-radius: 16px;
+    padding: 48px 40px;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.2);
+    text-align: center;
+    max-width: 380px;
+    width: 90%;
+  }
+
+  .login-box h1 {
+    font-size: 24px;
+    margin-bottom: 8px;
+    color: var(--text);
+  }
+
+  .login-box p {
+    color: var(--text-light);
+    margin-bottom: 24px;
+    font-size: 14px;
+  }
+
+  .login-box input {
+    width: 100%;
+    padding: 12px 16px;
+    border: 2px solid var(--border);
+    border-radius: 8px;
+    font-size: 16px;
+    outline: none;
+    transition: border-color 0.2s;
+  }
+
+  .login-box input:focus {
+    border-color: #667eea;
+  }
+
+  .login-box button {
+    width: 100%;
+    padding: 12px;
+    margin-top: 16px;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: #fff;
+    border: none;
+    border-radius: 8px;
+    font-size: 16px;
+    cursor: pointer;
+    transition: opacity 0.2s;
+  }
+
+  .login-box button:hover { opacity: 0.9; }
+
+  .login-error {
+    color: #ea4335;
+    font-size: 13px;
+    margin-top: 12px;
+    display: none;
+  }
+
+  /* ===== アプリ本体 ===== */
+  #app { display: none; }
+
+  header {
+    background: var(--card-bg);
+    box-shadow: var(--shadow);
+    padding: 16px 24px;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+  }
+
+  .header-top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 12px;
+  }
+
+  .header-top h1 {
+    font-size: 20px;
+    background: linear-gradient(135deg, #667eea, #764ba2);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  .logout-btn {
+    padding: 6px 16px;
+    background: none;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 13px;
+    color: var(--text-light);
+    transition: background 0.2s;
+  }
+
+  .logout-btn:hover { background: #f0f0f0; }
+
+  .nav-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 12px;
+  }
+
+  .month-nav {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+  }
+
+  .month-nav button {
+    background: none;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    width: 36px;
+    height: 36px;
+    cursor: pointer;
+    font-size: 18px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background 0.2s;
+  }
+
+  .month-nav button:hover { background: #f0f0f0; }
+
+  .month-nav .current-month {
+    font-size: 18px;
+    font-weight: 600;
+    min-width: 160px;
+    text-align: center;
+  }
+
+  .today-btn {
+    padding: 6px 14px;
+    background: none;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 13px;
+    color: var(--text-light);
+    transition: background 0.2s;
+  }
+
+  .today-btn:hover { background: #f0f0f0; }
+
+  .filter-row {
+    display: flex;
+    gap: 8px;
+  }
+
+  .filter-btn {
+    padding: 6px 16px;
+    border: 2px solid;
+    border-radius: 20px;
+    cursor: pointer;
+    font-size: 13px;
+    font-weight: 600;
+    transition: all 0.2s;
+    background: #fff;
+  }
+
+  .filter-btn[data-member="パパ"] { border-color: var(--papa-color); color: var(--papa-color); }
+  .filter-btn[data-member="ママ"] { border-color: var(--mama-color); color: var(--mama-color); }
+  .filter-btn[data-member="子供"] { border-color: var(--child-color); color: var(--child-color); }
+
+  .filter-btn.active[data-member="パパ"] { background: var(--papa-color); color: #fff; }
+  .filter-btn.active[data-member="ママ"] { background: var(--mama-color); color: #fff; }
+  .filter-btn.active[data-member="子供"] { background: var(--child-color); color: #fff; }
+
+  /* ===== カレンダーグリッド ===== */
+  .calendar-container {
+    max-width: 1100px;
+    margin: 20px auto;
+    padding: 0 16px;
+  }
+
+  .calendar-grid {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    background: var(--card-bg);
+    border-radius: 12px;
+    box-shadow: var(--shadow);
+    overflow: hidden;
+  }
+
+  .weekday-header {
+    padding: 12px 4px;
+    text-align: center;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text-light);
+    background: #fafafa;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .weekday-header:first-child { color: #ea4335; }
+  .weekday-header:last-child { color: #4285f4; }
+
+  .day-cell {
+    min-height: 100px;
+    padding: 4px;
+    border: 1px solid #f0f0f0;
+    cursor: pointer;
+    transition: background 0.15s;
+    position: relative;
+  }
+
+  .day-cell:hover { background: #f8f8ff; }
+
+  .day-cell.other-month { background: #fafafa; }
+  .day-cell.other-month .day-number { color: #ccc; }
+
+  .day-cell.today { background: #f0f0ff; }
+  .day-cell.today .day-number {
+    background: linear-gradient(135deg, #667eea, #764ba2);
+    color: #fff;
+    border-radius: 50%;
+    width: 28px;
+    height: 28px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .day-number {
+    font-size: 13px;
+    font-weight: 600;
+    padding: 2px 4px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 28px;
+    min-height: 28px;
+  }
+
+  .day-cell:nth-child(7n+1) .day-number { color: #ea4335; }
+  .day-cell:nth-child(7n) .day-number { color: #4285f4; }
+  .day-cell.other-month:nth-child(7n+1) .day-number,
+  .day-cell.other-month:nth-child(7n) .day-number { color: #ccc; }
+
+  .event-chip {
+    font-size: 11px;
+    padding: 2px 6px;
+    margin: 1px 0;
+    border-radius: 4px;
+    color: #fff;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    cursor: pointer;
+    transition: opacity 0.15s;
+  }
+
+  .event-chip:hover { opacity: 0.85; }
+
+  .event-chip[data-member="パパ"] { background: var(--papa-color); }
+  .event-chip[data-member="ママ"] { background: var(--mama-color); }
+  .event-chip[data-member="子供"] { background: var(--child-color); }
+
+  .more-events {
+    font-size: 11px;
+    color: var(--text-light);
+    padding: 1px 4px;
+    cursor: pointer;
+  }
+
+  /* ===== モーダル ===== */
+  .modal-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.4);
+    z-index: 200;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .modal-overlay.show { display: flex; }
+
+  .modal {
+    background: var(--card-bg);
+    border-radius: 16px;
+    padding: 32px;
+    max-width: 440px;
+    width: 90%;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+    max-height: 90vh;
+    overflow-y: auto;
+  }
+
+  .modal h2 {
+    font-size: 18px;
+    margin-bottom: 20px;
+  }
+
+  .modal-date {
+    font-size: 14px;
+    color: var(--text-light);
+    margin-bottom: 16px;
+  }
+
+  .form-group {
+    margin-bottom: 16px;
+  }
+
+  .form-group label {
+    display: block;
+    font-size: 13px;
+    font-weight: 600;
+    margin-bottom: 6px;
+    color: var(--text-light);
+  }
+
+  .form-group input,
+  .form-group textarea,
+  .form-group select {
+    width: 100%;
+    padding: 10px 12px;
+    border: 2px solid var(--border);
+    border-radius: 8px;
+    font-size: 14px;
+    outline: none;
+    transition: border-color 0.2s;
+    font-family: inherit;
+  }
+
+  .form-group input:focus,
+  .form-group textarea:focus,
+  .form-group select:focus {
+    border-color: #667eea;
+  }
+
+  .form-group textarea {
+    resize: vertical;
+    min-height: 60px;
+  }
+
+  .member-select {
+    display: flex;
+    gap: 8px;
+  }
+
+  .member-option {
+    flex: 1;
+    padding: 10px;
+    border: 2px solid var(--border);
+    border-radius: 8px;
+    text-align: center;
+    cursor: pointer;
+    font-size: 13px;
+    font-weight: 600;
+    transition: all 0.2s;
+    background: #fff;
+  }
+
+  .member-option:hover { background: #f8f8f8; }
+
+  .member-option[data-member="パパ"].selected { border-color: var(--papa-color); background: var(--papa-color); color: #fff; }
+  .member-option[data-member="ママ"].selected { border-color: var(--mama-color); background: var(--mama-color); color: #fff; }
+  .member-option[data-member="子供"].selected { border-color: var(--child-color); background: var(--child-color); color: #fff; }
+
+  .modal-actions {
+    display: flex;
+    gap: 8px;
+    margin-top: 24px;
+  }
+
+  .modal-actions button {
+    flex: 1;
+    padding: 10px;
+    border: none;
+    border-radius: 8px;
+    font-size: 14px;
+    cursor: pointer;
+    transition: opacity 0.2s;
+  }
+
+  .btn-save {
+    background: linear-gradient(135deg, #667eea, #764ba2);
+    color: #fff;
+  }
+
+  .btn-cancel {
+    background: #f0f0f0;
+    color: var(--text);
+  }
+
+  .btn-delete {
+    background: #ea4335;
+    color: #fff;
+    flex: 0.5;
+  }
+
+  .modal-actions button:hover { opacity: 0.85; }
+
+  /* ===== レスポンシブ ===== */
+  @media (max-width: 768px) {
+    .day-cell { min-height: 70px; }
+    .event-chip { font-size: 10px; padding: 1px 4px; }
+    .month-nav .current-month { font-size: 16px; min-width: 130px; }
+    .nav-row { gap: 8px; }
+    .modal { padding: 24px; }
+    .calendar-container { padding: 0 8px; margin: 12px auto; }
+    header { padding: 12px 16px; }
+  }
+
+  @media (max-width: 480px) {
+    .day-cell { min-height: 56px; }
+    .day-number { font-size: 11px; min-width: 22px; min-height: 22px; }
+    .event-chip { font-size: 9px; padding: 1px 3px; }
+    .weekday-header { font-size: 11px; padding: 8px 2px; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ===== ログイン画面 ===== -->
+<div id="login-screen">
+  <div class="login-box">
+    <h1>家族カレンダー</h1>
+    <p>パスワードを入力してください</p>
+    <input type="password" id="password-input" placeholder="パスワード" autocomplete="off">
+    <button id="login-btn">ログイン</button>
+    <div class="login-error" id="login-error">パスワードが正しくありません</div>
+  </div>
+</div>
+
+<!-- ===== アプリ本体 ===== -->
+<div id="app">
+  <header>
+    <div class="header-top">
+      <h1>家族カレンダー</h1>
+      <button class="logout-btn" id="logout-btn">ログアウト</button>
+    </div>
+    <div class="nav-row">
+      <div class="month-nav">
+        <button id="prev-month">◀</button>
+        <span class="current-month" id="current-month"></span>
+        <button id="next-month">▶</button>
+        <button class="today-btn" id="today-btn">今日</button>
+      </div>
+      <div class="filter-row">
+        <button class="filter-btn active" data-member="パパ">パパ</button>
+        <button class="filter-btn active" data-member="ママ">ママ</button>
+        <button class="filter-btn active" data-member="子供">子供</button>
+      </div>
+    </div>
+  </header>
+
+  <div class="calendar-container">
+    <div class="calendar-grid" id="calendar-grid"></div>
+  </div>
+</div>
+
+<!-- ===== 予定モーダル ===== -->
+<div class="modal-overlay" id="modal-overlay">
+  <div class="modal">
+    <h2 id="modal-title">予定を追加</h2>
+    <div class="modal-date" id="modal-date"></div>
+    <div class="form-group">
+      <label>タイトル</label>
+      <input type="text" id="event-title" placeholder="予定のタイトル">
+    </div>
+    <div class="form-group">
+      <label>メンバー</label>
+      <div class="member-select">
+        <div class="member-option" data-member="パパ">パパ</div>
+        <div class="member-option" data-member="ママ">ママ</div>
+        <div class="member-option" data-member="子供">子供</div>
+      </div>
+    </div>
+    <div class="form-group">
+      <label>時間（任意）</label>
+      <input type="time" id="event-time">
+    </div>
+    <div class="form-group">
+      <label>メモ（任意）</label>
+      <textarea id="event-memo" placeholder="メモを入力"></textarea>
+    </div>
+    <div class="modal-actions" id="modal-actions">
+      <button class="btn-cancel" id="btn-cancel">キャンセル</button>
+      <button class="btn-save" id="btn-save">保存</button>
+    </div>
+  </div>
+</div>
+
+<script>
+(function() {
+  'use strict';
+
+  // ===== 設定 =====
+  // パスワードはここで変更してください
+  const APP_PASSWORD = 'family2026';
+  const STORAGE_KEY = 'familyCalendarEvents';
+  const AUTH_KEY = 'familyCalendarAuth';
+
+  const MEMBERS = {
+    'パパ': '#4285f4',
+    'ママ': '#ea4335',
+    '子供': '#34a853'
+  };
+
+  // ===== 状態 =====
+  let currentYear, currentMonth;
+  let events = [];
+  let editingEventId = null;
+  let activeFilters = { 'パパ': true, 'ママ': true, '子供': true };
+
+  // ===== DOM要素 =====
+  const $ = id => document.getElementById(id);
+  const loginScreen = $('login-screen');
+  const app = $('app');
+  const passwordInput = $('password-input');
+  const loginBtn = $('login-btn');
+  const loginError = $('login-error');
+  const logoutBtn = $('logout-btn');
+  const prevMonthBtn = $('prev-month');
+  const nextMonthBtn = $('next-month');
+  const todayBtn = $('today-btn');
+  const currentMonthEl = $('current-month');
+  const calendarGrid = $('calendar-grid');
+  const modalOverlay = $('modal-overlay');
+  const modalTitle = $('modal-title');
+  const modalDate = $('modal-date');
+  const eventTitle = $('event-title');
+  const eventTime = $('event-time');
+  const eventMemo = $('event-memo');
+  const modalActions = $('modal-actions');
+  const btnSave = $('btn-save');
+  const btnCancel = $('btn-cancel');
+
+  // ===== 認証 =====
+  function checkAuth() {
+    if (sessionStorage.getItem(AUTH_KEY) === 'true') {
+      showApp();
+    } else {
+      loginScreen.style.display = 'flex';
+      app.style.display = 'none';
+    }
+  }
+
+  function login() {
+    if (passwordInput.value === APP_PASSWORD) {
+      sessionStorage.setItem(AUTH_KEY, 'true');
+      loginError.style.display = 'none';
+      showApp();
+    } else {
+      loginError.style.display = 'block';
+      passwordInput.value = '';
+      passwordInput.focus();
+    }
+  }
+
+  function logout() {
+    sessionStorage.removeItem(AUTH_KEY);
+    loginScreen.style.display = 'flex';
+    app.style.display = 'none';
+    passwordInput.value = '';
+  }
+
+  function showApp() {
+    loginScreen.style.display = 'none';
+    app.style.display = 'block';
+    init();
+  }
+
+  // ===== データ管理 =====
+  function loadEvents() {
+    try {
+      events = JSON.parse(localStorage.getItem(STORAGE_KEY)) || [];
+    } catch {
+      events = [];
+    }
+  }
+
+  function saveEvents() {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(events));
+  }
+
+  function generateId() {
+    return Date.now().toString(36) + Math.random().toString(36).slice(2, 8);
+  }
+
+  // ===== カレンダー描画 =====
+  function init() {
+    const today = new Date();
+    currentYear = today.getFullYear();
+    currentMonth = today.getMonth();
+    loadEvents();
+    render();
+  }
+
+  function render() {
+    currentMonthEl.textContent = `${currentYear}年${currentMonth + 1}月`;
+    renderCalendar();
+  }
+
+  function renderCalendar() {
+    calendarGrid.innerHTML = '';
+
+    const weekdays = ['日', '月', '火', '水', '木', '金', '土'];
+    weekdays.forEach(day => {
+      const el = document.createElement('div');
+      el.className = 'weekday-header';
+      el.textContent = day;
+      calendarGrid.appendChild(el);
+    });
+
+    const firstDay = new Date(currentYear, currentMonth, 1);
+    const lastDay = new Date(currentYear, currentMonth + 1, 0);
+    const startDayOfWeek = firstDay.getDay();
+    const daysInMonth = lastDay.getDate();
+
+    const prevLastDay = new Date(currentYear, currentMonth, 0);
+    const prevDays = prevLastDay.getDate();
+
+    const today = new Date();
+    const todayStr = formatDate(today);
+
+    const totalCells = Math.ceil((startDayOfWeek + daysInMonth) / 7) * 7;
+
+    for (let i = 0; i < totalCells; i++) {
+      const cell = document.createElement('div');
+      cell.className = 'day-cell';
+
+      let date, dateStr, isOtherMonth = false;
+
+      if (i < startDayOfWeek) {
+        const d = prevDays - startDayOfWeek + i + 1;
+        const m = currentMonth - 1;
+        const y = m < 0 ? currentYear - 1 : currentYear;
+        const actualM = m < 0 ? 11 : m;
+        date = d;
+        dateStr = `${y}-${String(actualM + 1).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
+        isOtherMonth = true;
+      } else if (i >= startDayOfWeek + daysInMonth) {
+        const d = i - startDayOfWeek - daysInMonth + 1;
+        const m = currentMonth + 1;
+        const y = m > 11 ? currentYear + 1 : currentYear;
+        const actualM = m > 11 ? 0 : m;
+        date = d;
+        dateStr = `${y}-${String(actualM + 1).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
+        isOtherMonth = true;
+      } else {
+        date = i - startDayOfWeek + 1;
+        dateStr = `${currentYear}-${String(currentMonth + 1).padStart(2, '0')}-${String(date).padStart(2, '0')}`;
+      }
+
+      if (isOtherMonth) cell.classList.add('other-month');
+      if (dateStr === todayStr) cell.classList.add('today');
+
+      const dayNum = document.createElement('div');
+      dayNum.className = 'day-number';
+      dayNum.textContent = date;
+      cell.appendChild(dayNum);
+
+      const dayEvents = events
+        .filter(e => e.date === dateStr && activeFilters[e.member])
+        .sort((a, b) => (a.time || '').localeCompare(b.time || ''));
+
+      const maxChips = 3;
+      dayEvents.slice(0, maxChips).forEach(ev => {
+        const chip = document.createElement('div');
+        chip.className = 'event-chip';
+        chip.dataset.member = ev.member;
+        const timeStr = ev.time ? ev.time + ' ' : '';
+        chip.textContent = timeStr + ev.title;
+        chip.addEventListener('click', (e) => {
+          e.stopPropagation();
+          openEditModal(ev);
+        });
+        cell.appendChild(chip);
+      });
+
+      if (dayEvents.length > maxChips) {
+        const more = document.createElement('div');
+        more.className = 'more-events';
+        more.textContent = `+${dayEvents.length - maxChips}件`;
+        cell.appendChild(more);
+      }
+
+      cell.addEventListener('click', () => openAddModal(dateStr));
+      calendarGrid.appendChild(cell);
+    }
+  }
+
+  function formatDate(d) {
+    return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+  }
+
+  function formatDateDisplay(dateStr) {
+    const [y, m, d] = dateStr.split('-');
+    const date = new Date(parseInt(y), parseInt(m) - 1, parseInt(d));
+    const weekdays = ['日', '月', '火', '水', '木', '金', '土'];
+    return `${parseInt(y)}年${parseInt(m)}月${parseInt(d)}日（${weekdays[date.getDay()]}）`;
+  }
+
+  // ===== モーダル =====
+  function openAddModal(dateStr) {
+    editingEventId = null;
+    modalTitle.textContent = '予定を追加';
+    modalDate.textContent = formatDateDisplay(dateStr);
+    eventTitle.value = '';
+    eventTime.value = '';
+    eventMemo.value = '';
+    eventTitle.dataset.date = dateStr;
+
+    document.querySelectorAll('.member-option').forEach(el => el.classList.remove('selected'));
+    document.querySelector('.member-option[data-member="パパ"]').classList.add('selected');
+
+    updateModalActions(false);
+    modalOverlay.classList.add('show');
+    eventTitle.focus();
+  }
+
+  function openEditModal(ev) {
+    editingEventId = ev.id;
+    modalTitle.textContent = '予定を編集';
+    modalDate.textContent = formatDateDisplay(ev.date);
+    eventTitle.value = ev.title;
+    eventTime.value = ev.time || '';
+    eventMemo.value = ev.memo || '';
+    eventTitle.dataset.date = ev.date;
+
+    document.querySelectorAll('.member-option').forEach(el => {
+      el.classList.toggle('selected', el.dataset.member === ev.member);
+    });
+
+    updateModalActions(true);
+    modalOverlay.classList.add('show');
+    eventTitle.focus();
+  }
+
+  function updateModalActions(showDelete) {
+    modalActions.innerHTML = '';
+
+    const cancelBtn = document.createElement('button');
+    cancelBtn.className = 'btn-cancel';
+    cancelBtn.textContent = 'キャンセル';
+    cancelBtn.addEventListener('click', closeModal);
+    modalActions.appendChild(cancelBtn);
+
+    if (showDelete) {
+      const deleteBtn = document.createElement('button');
+      deleteBtn.className = 'btn-delete';
+      deleteBtn.textContent = '削除';
+      deleteBtn.addEventListener('click', deleteEvent);
+      modalActions.appendChild(deleteBtn);
+    }
+
+    const saveBtn = document.createElement('button');
+    saveBtn.className = 'btn-save';
+    saveBtn.textContent = '保存';
+    saveBtn.addEventListener('click', saveEvent);
+    modalActions.appendChild(saveBtn);
+  }
+
+  function closeModal() {
+    modalOverlay.classList.remove('show');
+    editingEventId = null;
+  }
+
+  function getSelectedMember() {
+    const selected = document.querySelector('.member-option.selected');
+    return selected ? selected.dataset.member : 'パパ';
+  }
+
+  function saveEvent() {
+    const title = eventTitle.value.trim();
+    if (!title) {
+      eventTitle.focus();
+      return;
+    }
+
+    const eventData = {
+      id: editingEventId || generateId(),
+      title: title,
+      date: eventTitle.dataset.date,
+      time: eventTime.value || '',
+      member: getSelectedMember(),
+      memo: eventMemo.value.trim()
+    };
+
+    if (editingEventId) {
+      const idx = events.findIndex(e => e.id === editingEventId);
+      if (idx !== -1) events[idx] = eventData;
+    } else {
+      events.push(eventData);
+    }
+
+    saveEvents();
+    closeModal();
+    render();
+  }
+
+  function deleteEvent() {
+    if (!editingEventId) return;
+    if (!confirm('この予定を削除しますか？')) return;
+
+    events = events.filter(e => e.id !== editingEventId);
+    saveEvents();
+    closeModal();
+    render();
+  }
+
+  // ===== イベントリスナー =====
+  loginBtn.addEventListener('click', login);
+  passwordInput.addEventListener('keydown', e => { if (e.key === 'Enter') login(); });
+  logoutBtn.addEventListener('click', logout);
+
+  prevMonthBtn.addEventListener('click', () => {
+    currentMonth--;
+    if (currentMonth < 0) { currentMonth = 11; currentYear--; }
+    render();
+  });
+
+  nextMonthBtn.addEventListener('click', () => {
+    currentMonth++;
+    if (currentMonth > 11) { currentMonth = 0; currentYear++; }
+    render();
+  });
+
+  todayBtn.addEventListener('click', () => {
+    const today = new Date();
+    currentYear = today.getFullYear();
+    currentMonth = today.getMonth();
+    render();
+  });
+
+  document.querySelectorAll('.filter-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      btn.classList.toggle('active');
+      activeFilters[btn.dataset.member] = btn.classList.contains('active');
+      render();
+    });
+  });
+
+  document.querySelectorAll('.member-option').forEach(opt => {
+    opt.addEventListener('click', () => {
+      document.querySelectorAll('.member-option').forEach(o => o.classList.remove('selected'));
+      opt.classList.add('selected');
+    });
+  });
+
+  modalOverlay.addEventListener('click', (e) => {
+    if (e.target === modalOverlay) closeModal();
+  });
+
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && modalOverlay.classList.contains('show')) {
+      closeModal();
+    }
+  });
+
+  // ===== 起動 =====
+  checkAuth();
+})();
+</script>
+</body>
+</html>
