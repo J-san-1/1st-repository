@@ -1,0 +1,693 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>製薬業界ニュース</title>
+<style>
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+:root {
+  --bg: #0f1117;
+  --surface: #1a1d27;
+  --surface2: #242836;
+  --border: #2e3347;
+  --text: #e4e6ed;
+  --text-muted: #8b8fa3;
+  --accent: #4f8cff;
+  --accent-hover: #6ba0ff;
+  --danger: #e74c5e;
+  --danger-hover: #f06070;
+  --success: #34c77b;
+  --card-shadow: 0 2px 8px rgba(0,0,0,0.3);
+}
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Hiragino Kaku Gothic ProN', 'Noto Sans JP', sans-serif;
+  line-height: 1.6;
+  min-height: 100vh;
+}
+
+.app {
+  max-width: 960px;
+  margin: 0 auto;
+  padding: 24px 16px;
+}
+
+/* Header */
+header {
+  text-align: center;
+  margin-bottom: 32px;
+}
+
+header h1 {
+  font-size: 28px;
+  font-weight: 700;
+  letter-spacing: 1px;
+  margin-bottom: 4px;
+}
+
+header h1 span {
+  color: var(--accent);
+}
+
+header p {
+  color: var(--text-muted);
+  font-size: 14px;
+}
+
+/* Toolbar */
+.toolbar {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 24px;
+  flex-wrap: wrap;
+}
+
+.toolbar input {
+  flex: 1;
+  min-width: 180px;
+  padding: 10px 14px;
+  border: 2px solid var(--border);
+  border-radius: 8px;
+  background: var(--surface);
+  color: var(--text);
+  font-size: 15px;
+  outline: none;
+  transition: border-color 0.2s;
+}
+
+.toolbar input:focus {
+  border-color: var(--accent);
+}
+
+.toolbar input::placeholder {
+  color: var(--text-muted);
+}
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 10px 18px;
+  border: none;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s, transform 0.1s;
+  white-space: nowrap;
+}
+
+.btn:active {
+  transform: scale(0.97);
+}
+
+.btn-primary {
+  background: var(--accent);
+  color: #fff;
+}
+
+.btn-primary:hover {
+  background: var(--accent-hover);
+}
+
+.btn-secondary {
+  background: var(--surface2);
+  color: var(--text);
+  border: 1px solid var(--border);
+}
+
+.btn-secondary:hover {
+  background: var(--border);
+}
+
+.btn-danger {
+  background: transparent;
+  color: var(--danger);
+  padding: 4px 8px;
+  font-size: 13px;
+}
+
+.btn-danger:hover {
+  background: rgba(231,76,94,0.12);
+}
+
+/* Company tags */
+.company-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 24px;
+  min-height: 36px;
+}
+
+.company-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  font-size: 13px;
+  color: var(--text);
+  transition: border-color 0.2s;
+}
+
+.company-tag:hover {
+  border-color: var(--accent);
+}
+
+.company-tag .remove {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: transparent;
+  border: none;
+  color: var(--text-muted);
+  font-size: 14px;
+  cursor: pointer;
+  line-height: 1;
+  transition: background 0.15s, color 0.15s;
+}
+
+.company-tag .remove:hover {
+  background: var(--danger);
+  color: #fff;
+}
+
+.empty-state {
+  text-align: center;
+  padding: 60px 20px;
+  color: var(--text-muted);
+}
+
+.empty-state .icon {
+  font-size: 48px;
+  margin-bottom: 16px;
+  opacity: 0.5;
+}
+
+.empty-state h2 {
+  font-size: 20px;
+  margin-bottom: 8px;
+  color: var(--text);
+}
+
+.empty-state p {
+  font-size: 14px;
+}
+
+/* News sections */
+.news-sections {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.company-section {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: var(--card-shadow);
+}
+
+.section-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 18px;
+  background: var(--surface2);
+  cursor: pointer;
+  user-select: none;
+  transition: background 0.15s;
+}
+
+.section-header:hover {
+  background: var(--border);
+}
+
+.section-header-left {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.section-header h2 {
+  font-size: 17px;
+  font-weight: 600;
+}
+
+.section-header .count {
+  font-size: 12px;
+  color: var(--text-muted);
+  background: var(--bg);
+  padding: 2px 8px;
+  border-radius: 10px;
+}
+
+.section-header .chevron {
+  color: var(--text-muted);
+  font-size: 12px;
+  transition: transform 0.25s;
+}
+
+.section-header .chevron.collapsed {
+  transform: rotate(-90deg);
+}
+
+.section-body {
+  max-height: 2000px;
+  overflow: hidden;
+  transition: max-height 0.35s ease, opacity 0.25s ease;
+  opacity: 1;
+}
+
+.section-body.collapsed {
+  max-height: 0;
+  opacity: 0;
+}
+
+/* Loading */
+.loading {
+  padding: 24px;
+  text-align: center;
+  color: var(--text-muted);
+}
+
+.loading .spinner {
+  display: inline-block;
+  width: 24px;
+  height: 24px;
+  border: 3px solid var(--border);
+  border-top-color: var(--accent);
+  border-radius: 50%;
+  animation: spin 0.7s linear infinite;
+  margin-bottom: 8px;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+/* Error */
+.error-msg {
+  padding: 16px 18px;
+  color: var(--danger);
+  font-size: 13px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* News items */
+.news-list {
+  list-style: none;
+}
+
+.news-item {
+  padding: 14px 18px;
+  border-top: 1px solid var(--border);
+  transition: background 0.15s;
+}
+
+.news-item:hover {
+  background: rgba(79,140,255,0.04);
+}
+
+.news-item a {
+  text-decoration: none;
+  color: var(--text);
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 1.5;
+  display: block;
+  margin-bottom: 4px;
+  transition: color 0.15s;
+}
+
+.news-item a:hover {
+  color: var(--accent);
+}
+
+.news-meta {
+  display: flex;
+  gap: 12px;
+  font-size: 12px;
+  color: var(--text-muted);
+  flex-wrap: wrap;
+}
+
+.news-meta .source {
+  color: var(--accent);
+  font-weight: 500;
+}
+
+/* Refresh bar */
+.refresh-bar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.refresh-bar .last-updated {
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
+.refreshing .refresh-icon {
+  animation: spin 0.7s linear infinite;
+}
+
+/* Responsive */
+@media (max-width: 600px) {
+  .app { padding: 16px 10px; }
+  header h1 { font-size: 22px; }
+  .toolbar { flex-direction: column; }
+  .toolbar .btn { width: 100%; justify-content: center; }
+  .section-header { padding: 12px 14px; }
+  .news-item { padding: 12px 14px; }
+}
+</style>
+</head>
+<body>
+
+<div class="app">
+  <header>
+    <h1><span>&#x1F48A;</span> 製薬業界ニュース</h1>
+    <p>日本の製薬会社のニュースを会社別に一覧表示</p>
+  </header>
+
+  <div class="toolbar">
+    <input type="text" id="company-input" placeholder="会社名を入力（例：武田薬品、第一三共）" />
+    <button class="btn btn-primary" id="add-btn">
+      <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M7 1v12M1 7h12" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+      追加
+    </button>
+  </div>
+
+  <div class="company-tags" id="company-tags"></div>
+
+  <div class="refresh-bar" id="refresh-bar" style="display:none;">
+    <span class="last-updated" id="last-updated"></span>
+    <button class="btn btn-secondary" id="refresh-btn">
+      <svg class="refresh-icon" width="14" height="14" viewBox="0 0 16 16" fill="none"><path d="M14 2v4h-4M2 14v-4h4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/><path d="M13.5 6A6 6 0 0 0 3.2 3.2L2 6M2.5 10a6 6 0 0 0 10.3 2.8L14 10" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      更新
+    </button>
+  </div>
+
+  <div id="content"></div>
+</div>
+
+<script>
+const PROXY_SERVICES = [
+  {
+    name: 'allorigins',
+    buildUrl: (url) => `https://api.allorigins.win/get?url=${encodeURIComponent(url)}`,
+    extract: (resp) => resp.json().then(d => d.contents),
+  },
+  {
+    name: 'corsproxy',
+    buildUrl: (url) => `https://corsproxy.io/?url=${encodeURIComponent(url)}`,
+    extract: (resp) => resp.text(),
+  },
+];
+
+const STORAGE_KEY = 'pharma-news-companies';
+const MAX_ARTICLES = 15;
+
+let companies = [];
+let newsCache = {};
+let isRefreshing = false;
+
+// --- Storage ---
+function loadCompanies() {
+  try {
+    const saved = localStorage.getItem(STORAGE_KEY);
+    if (saved) companies = JSON.parse(saved);
+  } catch {}
+}
+
+function saveCompanies() {
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(companies));
+}
+
+// --- RSS ---
+function buildRssUrl(keyword) {
+  return `https://news.google.com/rss/search?q=${encodeURIComponent(keyword + ' 製薬 OR 薬品')}&hl=ja&gl=JP&ceid=JP:ja`;
+}
+
+async function fetchWithProxy(url) {
+  for (const proxy of PROXY_SERVICES) {
+    try {
+      const res = await fetch(proxy.buildUrl(url), { signal: AbortSignal.timeout(12000) });
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      const text = await proxy.extract(res);
+      if (!text || text.length < 50) throw new Error('Empty response');
+      return text;
+    } catch (e) {
+      console.warn(`Proxy ${proxy.name} failed:`, e.message);
+      continue;
+    }
+  }
+  throw new Error('すべてのプロキシサービスへの接続に失敗しました');
+}
+
+function parseRSS(xmlText) {
+  const parser = new DOMParser();
+  const doc = parser.parseFromString(xmlText, 'text/xml');
+  if (doc.querySelector('parsererror')) {
+    throw new Error('RSSの解析に失敗しました');
+  }
+  const items = doc.querySelectorAll('item');
+  const articles = [];
+  items.forEach((item, i) => {
+    if (i >= MAX_ARTICLES) return;
+    const title = item.querySelector('title')?.textContent?.trim() || '';
+    const link = item.querySelector('link')?.textContent?.trim() || '';
+    const pubDate = item.querySelector('pubDate')?.textContent?.trim() || '';
+    const sourceEl = item.querySelector('source');
+    const source = sourceEl?.textContent?.trim() || '';
+    // Clean up title (Google News sometimes appends " - Source")
+    let cleanTitle = title;
+    if (source && cleanTitle.endsWith(` - ${source}`)) {
+      cleanTitle = cleanTitle.slice(0, -(` - ${source}`).length);
+    }
+    articles.push({
+      title: cleanTitle,
+      link,
+      pubDate,
+      source,
+      date: pubDate ? new Date(pubDate) : null,
+    });
+  });
+  return articles;
+}
+
+function formatDate(date) {
+  if (!date || isNaN(date.getTime())) return '';
+  const now = new Date();
+  const diff = now - date;
+  const hours = Math.floor(diff / (1000 * 60 * 60));
+  const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+  if (hours < 1) return '1時間以内';
+  if (hours < 24) return `${hours}時間前`;
+  if (days < 7) return `${days}日前`;
+  return date.toLocaleDateString('ja-JP', { year: 'numeric', month: 'short', day: 'numeric' });
+}
+
+// --- UI Rendering ---
+function renderTags() {
+  const container = document.getElementById('company-tags');
+  container.innerHTML = companies.map((name, i) =>
+    `<span class="company-tag">
+      ${escapeHtml(name)}
+      <button class="remove" data-index="${i}" title="削除">&times;</button>
+    </span>`
+  ).join('');
+
+  container.querySelectorAll('.remove').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const idx = parseInt(btn.dataset.index);
+      const name = companies[idx];
+      companies.splice(idx, 1);
+      delete newsCache[name];
+      saveCompanies();
+      render();
+    });
+  });
+}
+
+function renderContent() {
+  const content = document.getElementById('content');
+  const refreshBar = document.getElementById('refresh-bar');
+
+  if (companies.length === 0) {
+    refreshBar.style.display = 'none';
+    content.innerHTML = `
+      <div class="empty-state">
+        <div class="icon">&#x1F50D;</div>
+        <h2>会社を追加してください</h2>
+        <p>上のフォームに製薬会社名を入力して追加すると、<br>最新のニュースが表示されます。</p>
+      </div>`;
+    return;
+  }
+
+  refreshBar.style.display = 'flex';
+
+  content.innerHTML = `<div class="news-sections">
+    ${companies.map(name => renderSection(name)).join('')}
+  </div>`;
+
+  // Attach collapse listeners
+  content.querySelectorAll('.section-header').forEach(header => {
+    header.addEventListener('click', () => {
+      const body = header.nextElementSibling;
+      const chevron = header.querySelector('.chevron');
+      body.classList.toggle('collapsed');
+      chevron.classList.toggle('collapsed');
+    });
+  });
+}
+
+function renderSection(name) {
+  const data = newsCache[name];
+  let bodyContent;
+
+  if (!data) {
+    bodyContent = `<div class="loading"><div class="spinner"></div><div>ニュースを取得中...</div></div>`;
+  } else if (data.error) {
+    bodyContent = `<div class="error-msg">&#x26A0; ${escapeHtml(data.error)}</div>`;
+  } else if (data.articles.length === 0) {
+    bodyContent = `<div class="loading" style="color:var(--text-muted)">ニュースが見つかりませんでした</div>`;
+  } else {
+    bodyContent = `<ul class="news-list">
+      ${data.articles.map(a => `
+        <li class="news-item">
+          <a href="${escapeHtml(a.link)}" target="_blank" rel="noopener noreferrer">${escapeHtml(a.title)}</a>
+          <div class="news-meta">
+            ${a.source ? `<span class="source">${escapeHtml(a.source)}</span>` : ''}
+            ${a.date ? `<span>${formatDate(a.date)}</span>` : ''}
+          </div>
+        </li>
+      `).join('')}
+    </ul>`;
+  }
+
+  const count = data?.articles?.length;
+  const countBadge = typeof count === 'number' ? `<span class="count">${count}件</span>` : '';
+
+  return `<div class="company-section">
+    <div class="section-header">
+      <div class="section-header-left">
+        <h2>${escapeHtml(name)}</h2>
+        ${countBadge}
+      </div>
+      <span class="chevron">&#x25BC;</span>
+    </div>
+    <div class="section-body">${bodyContent}</div>
+  </div>`;
+}
+
+function escapeHtml(str) {
+  const div = document.createElement('div');
+  div.textContent = str;
+  return div.innerHTML;
+}
+
+function render() {
+  renderTags();
+  renderContent();
+}
+
+// --- Data fetching ---
+async function fetchNewsForCompany(name) {
+  try {
+    const rssUrl = buildRssUrl(name);
+    const xml = await fetchWithProxy(rssUrl);
+    const articles = parseRSS(xml);
+    articles.sort((a, b) => (b.date || 0) - (a.date || 0));
+    newsCache[name] = { articles, error: null, fetchedAt: new Date() };
+  } catch (e) {
+    newsCache[name] = { articles: [], error: e.message, fetchedAt: new Date() };
+  }
+}
+
+async function fetchAllNews() {
+  if (isRefreshing || companies.length === 0) return;
+  isRefreshing = true;
+  const refreshBtn = document.getElementById('refresh-btn');
+  refreshBtn?.classList.add('refreshing');
+
+  // Clear caches and show loading state
+  companies.forEach(name => { newsCache[name] = null; });
+  render();
+
+  // Fetch in parallel with a small stagger to avoid rate limiting
+  const fetchPromises = companies.map((name, i) =>
+    new Promise(resolve => {
+      setTimeout(async () => {
+        await fetchNewsForCompany(name);
+        renderContent(); // Update UI incrementally
+        resolve();
+      }, i * 300);
+    })
+  );
+
+  await Promise.all(fetchPromises);
+
+  const now = new Date();
+  const lastUpdated = document.getElementById('last-updated');
+  if (lastUpdated) {
+    lastUpdated.textContent = `最終更新: ${now.toLocaleTimeString('ja-JP')}`;
+  }
+
+  isRefreshing = false;
+  refreshBtn?.classList.remove('refreshing');
+}
+
+// --- Events ---
+function addCompany() {
+  const input = document.getElementById('company-input');
+  const name = input.value.trim();
+  if (!name) return;
+  if (companies.includes(name)) {
+    input.value = '';
+    return;
+  }
+  companies.push(name);
+  saveCompanies();
+  input.value = '';
+  render();
+  fetchNewsForCompany(name).then(() => renderContent());
+}
+
+document.getElementById('add-btn').addEventListener('click', addCompany);
+document.getElementById('company-input').addEventListener('keydown', e => {
+  if (e.key === 'Enter') addCompany();
+});
+document.getElementById('refresh-btn').addEventListener('click', fetchAllNews);
+
+// --- Init ---
+loadCompanies();
+render();
+if (companies.length > 0) {
+  fetchAllNews();
+}
+</script>
+
+</body>
+</html>
