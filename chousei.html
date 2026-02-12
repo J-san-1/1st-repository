@@ -909,7 +909,7 @@
                 </div>
 
                 <div class="btn-group">
-                    <button class="btn btn-primary" id="create-btn" onclick="createEvent()">イベントを作成する</button>
+                    <button class="btn btn-primary" id="create-btn" onclick="handleCreateEvent()">イベントを作成する</button>
                     <button class="btn btn-secondary" onclick="navigateTo('top')">キャンセル</button>
                 </div>
             </div>
@@ -1235,7 +1235,7 @@
             renderSelectedDates();
         }
 
-        window.createEvent = function() {
+        window.handleCreateEvent = function() {
             const title = document.getElementById('event-title').value.trim();
             const memo = document.getElementById('event-memo').value.trim();
 
