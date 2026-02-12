@@ -1,0 +1,1234 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>企業人事異動・組織改変トラッカー</title>
+<style>
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+:root {
+  --bg: #0f1117;
+  --surface: #1a1d27;
+  --surface2: #242836;
+  --border: #2e3347;
+  --text: #e4e6ed;
+  --text-muted: #8b8fa3;
+  --accent: #6c8cff;
+  --accent-hover: #8ba4ff;
+  --accent-bg: rgba(108,140,255,0.10);
+  --danger: #e74c5e;
+  --danger-hover: #f06070;
+  --success: #34c77b;
+  --warning: #f0a030;
+  --card-shadow: 0 2px 8px rgba(0,0,0,0.3);
+  --tag-jinji: #6c8cff;
+  --tag-soshiki: #b070f0;
+  --tag-other: #50b0a0;
+}
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Hiragino Kaku Gothic ProN', 'Noto Sans JP', sans-serif;
+  line-height: 1.6;
+  min-height: 100vh;
+}
+
+.app {
+  max-width: 1000px;
+  margin: 0 auto;
+  padding: 24px 16px;
+}
+
+/* Header */
+header {
+  text-align: center;
+  margin-bottom: 28px;
+  padding-bottom: 20px;
+  border-bottom: 1px solid var(--border);
+}
+
+header h1 {
+  font-size: 26px;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  margin-bottom: 6px;
+}
+
+header h1 .icon {
+  font-size: 28px;
+  margin-right: 4px;
+}
+
+header h1 .highlight {
+  color: var(--accent);
+}
+
+header p {
+  color: var(--text-muted);
+  font-size: 14px;
+}
+
+/* Tabs */
+.tab-bar {
+  display: flex;
+  gap: 2px;
+  margin-bottom: 24px;
+  background: var(--surface);
+  border-radius: 10px;
+  padding: 4px;
+  border: 1px solid var(--border);
+}
+
+.tab-btn {
+  flex: 1;
+  padding: 10px 16px;
+  border: none;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--text-muted);
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.2s, color 0.2s;
+}
+
+.tab-btn:hover {
+  color: var(--text);
+  background: var(--surface2);
+}
+
+.tab-btn.active {
+  background: var(--accent);
+  color: #fff;
+}
+
+/* Toolbar */
+.toolbar {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 16px;
+  flex-wrap: wrap;
+}
+
+.toolbar input {
+  flex: 1;
+  min-width: 200px;
+  padding: 10px 14px;
+  border: 2px solid var(--border);
+  border-radius: 8px;
+  background: var(--surface);
+  color: var(--text);
+  font-size: 15px;
+  outline: none;
+  transition: border-color 0.2s;
+}
+
+.toolbar input:focus {
+  border-color: var(--accent);
+}
+
+.toolbar input::placeholder {
+  color: var(--text-muted);
+}
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 10px 18px;
+  border: none;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s, transform 0.1s;
+  white-space: nowrap;
+}
+
+.btn:active {
+  transform: scale(0.97);
+}
+
+.btn-primary {
+  background: var(--accent);
+  color: #fff;
+}
+
+.btn-primary:hover {
+  background: var(--accent-hover);
+}
+
+.btn-secondary {
+  background: var(--surface2);
+  color: var(--text);
+  border: 1px solid var(--border);
+}
+
+.btn-secondary:hover {
+  background: var(--border);
+}
+
+.btn-danger {
+  background: transparent;
+  color: var(--danger);
+  padding: 4px 8px;
+  font-size: 13px;
+}
+
+.btn-danger:hover {
+  background: rgba(231,76,94,0.12);
+}
+
+.btn-sm {
+  padding: 6px 12px;
+  font-size: 13px;
+}
+
+/* Company tags */
+.company-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 20px;
+  min-height: 28px;
+}
+
+.company-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 14px;
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  font-size: 13px;
+  color: var(--text);
+  transition: border-color 0.2s, background 0.2s;
+  cursor: pointer;
+}
+
+.company-tag:hover {
+  border-color: var(--accent);
+}
+
+.company-tag.selected {
+  border-color: var(--accent);
+  background: var(--accent-bg);
+}
+
+.company-tag .remove {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: transparent;
+  border: none;
+  color: var(--text-muted);
+  font-size: 14px;
+  cursor: pointer;
+  line-height: 1;
+  transition: background 0.15s, color 0.15s;
+}
+
+.company-tag .remove:hover {
+  background: var(--danger);
+  color: #fff;
+}
+
+/* Preset companies */
+.preset-section {
+  margin-bottom: 20px;
+}
+
+.preset-label {
+  font-size: 12px;
+  color: var(--text-muted);
+  margin-bottom: 8px;
+}
+
+.preset-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.preset-chip {
+  padding: 5px 12px;
+  border: 1px dashed var(--border);
+  border-radius: 16px;
+  background: transparent;
+  color: var(--text-muted);
+  font-size: 12px;
+  cursor: pointer;
+  transition: border-color 0.2s, color 0.2s, background 0.2s;
+}
+
+.preset-chip:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+  background: var(--accent-bg);
+}
+
+.preset-chip.added {
+  opacity: 0.4;
+  pointer-events: none;
+}
+
+/* Filter bar */
+.filter-bar {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 16px;
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+.filter-bar input {
+  flex: 1;
+  min-width: 160px;
+  padding: 8px 12px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: var(--surface);
+  color: var(--text);
+  font-size: 13px;
+  outline: none;
+}
+
+.filter-bar input:focus {
+  border-color: var(--accent);
+}
+
+.filter-bar input::placeholder {
+  color: var(--text-muted);
+}
+
+.filter-chips {
+  display: flex;
+  gap: 4px;
+}
+
+.filter-chip {
+  padding: 5px 10px;
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  background: transparent;
+  color: var(--text-muted);
+  font-size: 12px;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.filter-chip:hover {
+  border-color: var(--accent);
+  color: var(--text);
+}
+
+.filter-chip.active {
+  border-color: var(--accent);
+  background: var(--accent-bg);
+  color: var(--accent);
+}
+
+/* Empty state */
+.empty-state {
+  text-align: center;
+  padding: 60px 20px;
+  color: var(--text-muted);
+}
+
+.empty-state .icon {
+  font-size: 48px;
+  margin-bottom: 16px;
+  opacity: 0.5;
+}
+
+.empty-state h2 {
+  font-size: 20px;
+  margin-bottom: 8px;
+  color: var(--text);
+}
+
+.empty-state p {
+  font-size: 14px;
+  line-height: 1.8;
+}
+
+/* News sections */
+.news-sections {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.company-section {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: var(--card-shadow);
+}
+
+.section-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 18px;
+  background: var(--surface2);
+  cursor: pointer;
+  user-select: none;
+  transition: background 0.15s;
+}
+
+.section-header:hover {
+  background: var(--border);
+}
+
+.section-header-left {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.section-header h2 {
+  font-size: 17px;
+  font-weight: 600;
+}
+
+.section-header .count {
+  font-size: 12px;
+  color: var(--text-muted);
+  background: var(--bg);
+  padding: 2px 8px;
+  border-radius: 10px;
+}
+
+.section-header .chevron {
+  color: var(--text-muted);
+  font-size: 12px;
+  transition: transform 0.25s;
+}
+
+.section-header .chevron.collapsed {
+  transform: rotate(-90deg);
+}
+
+.section-body {
+  max-height: 4000px;
+  overflow: hidden;
+  transition: max-height 0.35s ease, opacity 0.25s ease;
+  opacity: 1;
+}
+
+.section-body.collapsed {
+  max-height: 0;
+  opacity: 0;
+}
+
+/* Loading */
+.loading {
+  padding: 24px;
+  text-align: center;
+  color: var(--text-muted);
+}
+
+.loading .spinner {
+  display: inline-block;
+  width: 24px;
+  height: 24px;
+  border: 3px solid var(--border);
+  border-top-color: var(--accent);
+  border-radius: 50%;
+  animation: spin 0.7s linear infinite;
+  margin-bottom: 8px;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+/* Error */
+.error-msg {
+  padding: 16px 18px;
+  color: var(--danger);
+  font-size: 13px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* News items */
+.news-list {
+  list-style: none;
+}
+
+.news-item {
+  padding: 14px 18px;
+  border-top: 1px solid var(--border);
+  transition: background 0.15s;
+}
+
+.news-item:hover {
+  background: rgba(108,140,255,0.04);
+}
+
+.news-item-header {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  margin-bottom: 6px;
+}
+
+.news-type-badge {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-size: 11px;
+  font-weight: 600;
+  white-space: nowrap;
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+.badge-jinji {
+  background: rgba(108,140,255,0.15);
+  color: var(--tag-jinji);
+}
+
+.badge-soshiki {
+  background: rgba(176,112,240,0.15);
+  color: var(--tag-soshiki);
+}
+
+.badge-other {
+  background: rgba(80,176,160,0.15);
+  color: var(--tag-other);
+}
+
+.news-item a {
+  text-decoration: none;
+  color: var(--text);
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 1.5;
+  display: block;
+  transition: color 0.15s;
+}
+
+.news-item a:hover {
+  color: var(--accent);
+}
+
+.news-meta {
+  display: flex;
+  gap: 12px;
+  font-size: 12px;
+  color: var(--text-muted);
+  flex-wrap: wrap;
+  margin-top: 4px;
+}
+
+.news-meta .source {
+  color: var(--accent);
+  font-weight: 500;
+}
+
+.news-meta .date-text {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+/* Refresh bar */
+.refresh-bar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+}
+
+.refresh-bar .last-updated {
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
+.refreshing .refresh-icon {
+  animation: spin 0.7s linear infinite;
+}
+
+/* Stats bar */
+.stats-bar {
+  display: flex;
+  gap: 16px;
+  margin-bottom: 20px;
+  padding: 12px 16px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  flex-wrap: wrap;
+}
+
+.stat-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  color: var(--text-muted);
+}
+
+.stat-item .stat-value {
+  font-weight: 700;
+  color: var(--text);
+  font-size: 16px;
+}
+
+.stat-item .stat-label {
+  font-size: 12px;
+}
+
+/* Timeline view */
+.timeline-view {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+.timeline-date-group {
+  margin-bottom: 4px;
+}
+
+.timeline-date-header {
+  position: sticky;
+  top: 0;
+  z-index: 5;
+  padding: 8px 16px;
+  background: var(--bg);
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--accent);
+  border-bottom: 1px solid var(--border);
+}
+
+.timeline-item {
+  display: flex;
+  gap: 12px;
+  padding: 12px 16px 12px 24px;
+  border-bottom: 1px solid var(--border);
+  background: var(--surface);
+  transition: background 0.15s;
+}
+
+.timeline-item:hover {
+  background: var(--surface2);
+}
+
+.timeline-item .tl-company {
+  min-width: 100px;
+  max-width: 140px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--accent);
+  padding-top: 2px;
+  flex-shrink: 0;
+}
+
+.timeline-item .tl-content {
+  flex: 1;
+  min-width: 0;
+}
+
+.timeline-item .tl-content a {
+  text-decoration: none;
+  color: var(--text);
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 1.5;
+  display: block;
+  transition: color 0.15s;
+}
+
+.timeline-item .tl-content a:hover {
+  color: var(--accent);
+}
+
+.timeline-item .tl-meta {
+  display: flex;
+  gap: 10px;
+  font-size: 12px;
+  color: var(--text-muted);
+  margin-top: 4px;
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+.timeline-item .tl-meta .source {
+  color: var(--accent);
+  font-weight: 500;
+}
+
+/* Responsive */
+@media (max-width: 600px) {
+  .app { padding: 16px 10px; }
+  header h1 { font-size: 20px; }
+  .toolbar { flex-direction: column; }
+  .toolbar .btn { width: 100%; justify-content: center; }
+  .section-header { padding: 12px 14px; }
+  .news-item { padding: 12px 14px; }
+  .tab-btn { padding: 8px 10px; font-size: 13px; }
+  .stats-bar { flex-direction: column; gap: 8px; }
+  .timeline-item { flex-direction: column; gap: 4px; padding: 10px 14px; }
+  .timeline-item .tl-company { min-width: auto; max-width: none; }
+  .filter-bar { flex-direction: column; }
+}
+</style>
+</head>
+<body>
+
+<div class="app">
+  <header>
+    <h1><span class="icon">&#x1F465;</span> 企業<span class="highlight">人事異動</span>・組織改変トラッカー</h1>
+    <p>登録した企業の人事異動・組織改変ニュースを自動収集して表示</p>
+  </header>
+
+  <div class="toolbar">
+    <input type="text" id="company-input" placeholder="企業名を入力（例：トヨタ自動車、ソニーグループ）" />
+    <button class="btn btn-primary" id="add-btn">
+      <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M7 1v12M1 7h12" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+      追加
+    </button>
+  </div>
+
+  <div class="preset-section" id="preset-section">
+    <div class="preset-label">よく検索される企業（クリックで追加）</div>
+    <div class="preset-chips" id="preset-chips"></div>
+  </div>
+
+  <div class="company-tags" id="company-tags"></div>
+
+  <div class="tab-bar" id="tab-bar" style="display:none;">
+    <button class="tab-btn active" data-view="company">会社別</button>
+    <button class="tab-btn" data-view="timeline">時系列</button>
+  </div>
+
+  <div id="controls" style="display:none;">
+    <div class="filter-bar">
+      <input type="text" id="filter-input" placeholder="記事をキーワードで絞り込み..." />
+      <div class="filter-chips">
+        <button class="filter-chip active" data-filter="all">すべて</button>
+        <button class="filter-chip" data-filter="jinji">人事異動</button>
+        <button class="filter-chip" data-filter="soshiki">組織改変</button>
+      </div>
+    </div>
+
+    <div class="stats-bar" id="stats-bar">
+      <div class="stat-item">
+        <span class="stat-value" id="stat-companies">0</span>
+        <span class="stat-label">社登録</span>
+      </div>
+      <div class="stat-item">
+        <span class="stat-value" id="stat-articles">0</span>
+        <span class="stat-label">件の記事</span>
+      </div>
+      <div class="stat-item">
+        <span class="stat-value" id="stat-jinji">0</span>
+        <span class="stat-label">件 人事異動</span>
+      </div>
+      <div class="stat-item">
+        <span class="stat-value" id="stat-soshiki">0</span>
+        <span class="stat-label">件 組織改変</span>
+      </div>
+    </div>
+
+    <div class="refresh-bar">
+      <span class="last-updated" id="last-updated"></span>
+      <button class="btn btn-secondary btn-sm" id="refresh-btn">
+        <svg class="refresh-icon" width="14" height="14" viewBox="0 0 16 16" fill="none"><path d="M14 2v4h-4M2 14v-4h4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/><path d="M13.5 6A6 6 0 0 0 3.2 3.2L2 6M2.5 10a6 6 0 0 0 10.3 2.8L14 10" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        更新
+      </button>
+    </div>
+  </div>
+
+  <div id="content"></div>
+</div>
+
+<script>
+const PROXY_SERVICES = [
+  {
+    name: 'allorigins',
+    buildUrl: (url) => `https://api.allorigins.win/get?url=${encodeURIComponent(url)}`,
+    extract: (resp) => resp.json().then(d => d.contents),
+  },
+  {
+    name: 'corsproxy',
+    buildUrl: (url) => `https://corsproxy.io/?url=${encodeURIComponent(url)}`,
+    extract: (resp) => resp.text(),
+  },
+];
+
+const STORAGE_KEY = 'jinji-tracker-companies';
+const MAX_ARTICLES = 20;
+
+const PRESET_COMPANIES = [
+  'トヨタ自動車', 'ソニーグループ', 'NTT', '三菱商事', '日立製作所',
+  'パナソニック', 'ソフトバンク', '三井住友銀行', '任天堂', 'KDDI',
+  'ファーストリテイリング', '楽天グループ', 'キーエンス', '富士通', 'ホンダ'
+];
+
+const JINJI_KEYWORDS = ['人事', '異動', '就任', '退任', '役員', '取締役', '社長', '副社長', '常務', '専務', '執行役', '交代', '昇格', '降格', '転任', '着任', '後任', '新任', '辞任', '選任', '委嘱'];
+const SOSHIKI_KEYWORDS = ['組織', '改変', '改編', '再編', '統合', '分社', '新設', '廃止', '事業部', '部門', '合併', '分割', '持株', 'ホールディングス', '子会社', '経営体制'];
+
+let companies = [];
+let newsCache = {};
+let isRefreshing = false;
+let currentView = 'company';
+let currentFilter = 'all';
+let filterKeyword = '';
+
+// --- Storage ---
+function loadCompanies() {
+  try {
+    const saved = localStorage.getItem(STORAGE_KEY);
+    if (saved) companies = JSON.parse(saved);
+  } catch {}
+}
+
+function saveCompanies() {
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(companies));
+}
+
+// --- RSS ---
+function buildRssUrl(companyName) {
+  const query = companyName + ' 人事異動 OR 組織改編 OR 役員人事 OR 組織変更';
+  return `https://news.google.com/rss/search?q=${encodeURIComponent(query)}&hl=ja&gl=JP&ceid=JP:ja`;
+}
+
+async function fetchWithProxy(url) {
+  for (const proxy of PROXY_SERVICES) {
+    try {
+      const res = await fetch(proxy.buildUrl(url), { signal: AbortSignal.timeout(15000) });
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      const text = await proxy.extract(res);
+      if (!text || text.length < 50) throw new Error('Empty response');
+      return text;
+    } catch (e) {
+      console.warn(`Proxy ${proxy.name} failed:`, e.message);
+      continue;
+    }
+  }
+  throw new Error('すべてのプロキシサービスへの接続に失敗しました');
+}
+
+function parseRSS(xmlText) {
+  const parser = new DOMParser();
+  const doc = parser.parseFromString(xmlText, 'text/xml');
+  if (doc.querySelector('parsererror')) {
+    throw new Error('RSSの解析に失敗しました');
+  }
+  const items = doc.querySelectorAll('item');
+  const articles = [];
+  items.forEach((item, i) => {
+    if (i >= MAX_ARTICLES) return;
+    const title = item.querySelector('title')?.textContent?.trim() || '';
+    const link = item.querySelector('link')?.textContent?.trim() || '';
+    const pubDate = item.querySelector('pubDate')?.textContent?.trim() || '';
+    const sourceEl = item.querySelector('source');
+    const source = sourceEl?.textContent?.trim() || '';
+    let cleanTitle = title;
+    if (source && cleanTitle.endsWith(` - ${source}`)) {
+      cleanTitle = cleanTitle.slice(0, -(` - ${source}`).length);
+    }
+    const category = classifyArticle(cleanTitle);
+    articles.push({
+      title: cleanTitle,
+      link,
+      pubDate,
+      source,
+      date: pubDate ? new Date(pubDate) : null,
+      category,
+    });
+  });
+  return articles;
+}
+
+function classifyArticle(title) {
+  const hasJinji = JINJI_KEYWORDS.some(kw => title.includes(kw));
+  const hasSoshiki = SOSHIKI_KEYWORDS.some(kw => title.includes(kw));
+  if (hasJinji && !hasSoshiki) return 'jinji';
+  if (hasSoshiki && !hasJinji) return 'soshiki';
+  if (hasJinji && hasSoshiki) return 'jinji';
+  return 'other';
+}
+
+function formatDate(date) {
+  if (!date || isNaN(date.getTime())) return '';
+  const now = new Date();
+  const diff = now - date;
+  const hours = Math.floor(diff / (1000 * 60 * 60));
+  const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+  if (hours < 1) return '1時間以内';
+  if (hours < 24) return `${hours}時間前`;
+  if (days < 7) return `${days}日前`;
+  return date.toLocaleDateString('ja-JP', { year: 'numeric', month: 'short', day: 'numeric' });
+}
+
+function formatDateFull(date) {
+  if (!date || isNaN(date.getTime())) return '';
+  return date.toLocaleDateString('ja-JP', { year: 'numeric', month: 'long', day: 'numeric' });
+}
+
+function escapeHtml(str) {
+  const div = document.createElement('div');
+  div.textContent = str;
+  return div.innerHTML;
+}
+
+// --- Filtering ---
+function getFilteredArticles(articles) {
+  return articles.filter(a => {
+    if (currentFilter !== 'all' && a.category !== currentFilter) return false;
+    if (filterKeyword) {
+      const kw = filterKeyword.toLowerCase();
+      return a.title.toLowerCase().includes(kw) || (a.source && a.source.toLowerCase().includes(kw));
+    }
+    return true;
+  });
+}
+
+function getAllArticlesFlat() {
+  const all = [];
+  companies.forEach(name => {
+    const data = newsCache[name];
+    if (data && data.articles) {
+      data.articles.forEach(a => {
+        all.push({ ...a, company: name });
+      });
+    }
+  });
+  return all;
+}
+
+// --- Stats ---
+function updateStats() {
+  const allArticles = getAllArticlesFlat();
+  document.getElementById('stat-companies').textContent = companies.length;
+  document.getElementById('stat-articles').textContent = allArticles.length;
+  document.getElementById('stat-jinji').textContent = allArticles.filter(a => a.category === 'jinji').length;
+  document.getElementById('stat-soshiki').textContent = allArticles.filter(a => a.category === 'soshiki').length;
+}
+
+// --- UI Rendering ---
+function renderPresets() {
+  const container = document.getElementById('preset-chips');
+  container.innerHTML = PRESET_COMPANIES.map(name => {
+    const added = companies.includes(name);
+    return `<button class="preset-chip${added ? ' added' : ''}" data-name="${escapeHtml(name)}">${escapeHtml(name)}</button>`;
+  }).join('');
+
+  container.querySelectorAll('.preset-chip:not(.added)').forEach(chip => {
+    chip.addEventListener('click', () => {
+      const name = chip.dataset.name;
+      if (!companies.includes(name)) {
+        companies.push(name);
+        saveCompanies();
+        render();
+        fetchNewsForCompany(name).then(() => {
+          renderContent();
+          updateStats();
+        });
+      }
+    });
+  });
+}
+
+function renderTags() {
+  const container = document.getElementById('company-tags');
+  container.innerHTML = companies.map((name, i) =>
+    `<span class="company-tag">
+      ${escapeHtml(name)}
+      <button class="remove" data-index="${i}" title="削除">&times;</button>
+    </span>`
+  ).join('');
+
+  container.querySelectorAll('.remove').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const idx = parseInt(btn.dataset.index);
+      const name = companies[idx];
+      companies.splice(idx, 1);
+      delete newsCache[name];
+      saveCompanies();
+      render();
+      updateStats();
+    });
+  });
+}
+
+function renderContent() {
+  const content = document.getElementById('content');
+  const controls = document.getElementById('controls');
+  const tabBar = document.getElementById('tab-bar');
+
+  if (companies.length === 0) {
+    controls.style.display = 'none';
+    tabBar.style.display = 'none';
+    content.innerHTML = `
+      <div class="empty-state">
+        <div class="icon">&#x1F50D;</div>
+        <h2>企業を追加してください</h2>
+        <p>上のフォームに企業名を入力するか、<br>よく検索される企業をクリックして追加すると、<br>人事異動・組織改変のニュースが表示されます。</p>
+      </div>`;
+    return;
+  }
+
+  controls.style.display = 'block';
+  tabBar.style.display = 'flex';
+
+  if (currentView === 'company') {
+    renderCompanyView(content);
+  } else {
+    renderTimelineView(content);
+  }
+}
+
+function renderCompanyView(content) {
+  content.innerHTML = `<div class="news-sections">
+    ${companies.map(name => renderSection(name)).join('')}
+  </div>`;
+
+  content.querySelectorAll('.section-header').forEach(header => {
+    header.addEventListener('click', () => {
+      const body = header.nextElementSibling;
+      const chevron = header.querySelector('.chevron');
+      body.classList.toggle('collapsed');
+      chevron.classList.toggle('collapsed');
+    });
+  });
+}
+
+function renderSection(name) {
+  const data = newsCache[name];
+  let bodyContent;
+
+  if (!data) {
+    bodyContent = `<div class="loading"><div class="spinner"></div><div>ニュースを取得中...</div></div>`;
+  } else if (data.error) {
+    bodyContent = `<div class="error-msg">&#x26A0; ${escapeHtml(data.error)}</div>`;
+  } else {
+    const filtered = getFilteredArticles(data.articles);
+    if (filtered.length === 0) {
+      bodyContent = `<div class="loading" style="color:var(--text-muted)">該当するニュースが見つかりませんでした</div>`;
+    } else {
+      bodyContent = `<ul class="news-list">
+        ${filtered.map(a => renderNewsItem(a)).join('')}
+      </ul>`;
+    }
+  }
+
+  const filtered = data?.articles ? getFilteredArticles(data.articles) : null;
+  const count = filtered?.length;
+  const countBadge = typeof count === 'number' ? `<span class="count">${count}件</span>` : '';
+
+  return `<div class="company-section">
+    <div class="section-header">
+      <div class="section-header-left">
+        <h2>${escapeHtml(name)}</h2>
+        ${countBadge}
+      </div>
+      <span class="chevron">&#x25BC;</span>
+    </div>
+    <div class="section-body">${bodyContent}</div>
+  </div>`;
+}
+
+function renderNewsItem(a) {
+  const badge = getCategoryBadge(a.category);
+  return `<li class="news-item">
+    <div class="news-item-header">
+      ${badge}
+      <a href="${escapeHtml(a.link)}" target="_blank" rel="noopener noreferrer">${escapeHtml(a.title)}</a>
+    </div>
+    <div class="news-meta">
+      ${a.source ? `<span class="source">${escapeHtml(a.source)}</span>` : ''}
+      ${a.date ? `<span class="date-text">${formatDate(a.date)}</span>` : ''}
+    </div>
+  </li>`;
+}
+
+function getCategoryBadge(category) {
+  switch (category) {
+    case 'jinji':
+      return '<span class="news-type-badge badge-jinji">人事異動</span>';
+    case 'soshiki':
+      return '<span class="news-type-badge badge-soshiki">組織改変</span>';
+    default:
+      return '<span class="news-type-badge badge-other">関連</span>';
+  }
+}
+
+function renderTimelineView(content) {
+  let allArticles = getAllArticlesFlat();
+  allArticles = getFilteredArticles(allArticles);
+  allArticles.sort((a, b) => (b.date || 0) - (a.date || 0));
+
+  if (allArticles.length === 0) {
+    content.innerHTML = `<div class="loading" style="color:var(--text-muted)">該当するニュースが見つかりませんでした</div>`;
+    return;
+  }
+
+  // Group by date
+  const groups = {};
+  allArticles.forEach(a => {
+    const key = a.date ? formatDateFull(a.date) : '日付不明';
+    if (!groups[key]) groups[key] = [];
+    groups[key].push(a);
+  });
+
+  let html = '<div class="timeline-view">';
+  for (const [dateStr, articles] of Object.entries(groups)) {
+    html += `<div class="timeline-date-group">
+      <div class="timeline-date-header">${escapeHtml(dateStr)}（${articles.length}件）</div>`;
+    articles.forEach(a => {
+      const badge = getCategoryBadge(a.category);
+      html += `<div class="timeline-item">
+        <div class="tl-company">${escapeHtml(a.company)}</div>
+        <div class="tl-content">
+          <a href="${escapeHtml(a.link)}" target="_blank" rel="noopener noreferrer">${escapeHtml(a.title)}</a>
+          <div class="tl-meta">
+            ${badge}
+            ${a.source ? `<span class="source">${escapeHtml(a.source)}</span>` : ''}
+          </div>
+        </div>
+      </div>`;
+    });
+    html += '</div>';
+  }
+  html += '</div>';
+  content.innerHTML = html;
+}
+
+function render() {
+  renderPresets();
+  renderTags();
+  renderContent();
+  updateStats();
+}
+
+// --- Data fetching ---
+async function fetchNewsForCompany(name) {
+  try {
+    const rssUrl = buildRssUrl(name);
+    const xml = await fetchWithProxy(rssUrl);
+    const articles = parseRSS(xml);
+    articles.sort((a, b) => (b.date || 0) - (a.date || 0));
+    newsCache[name] = { articles, error: null, fetchedAt: new Date() };
+  } catch (e) {
+    newsCache[name] = { articles: [], error: e.message, fetchedAt: new Date() };
+  }
+}
+
+async function fetchAllNews() {
+  if (isRefreshing || companies.length === 0) return;
+  isRefreshing = true;
+  const refreshBtn = document.getElementById('refresh-btn');
+  refreshBtn?.classList.add('refreshing');
+
+  companies.forEach(name => { newsCache[name] = null; });
+  render();
+
+  const fetchPromises = companies.map((name, i) =>
+    new Promise(resolve => {
+      setTimeout(async () => {
+        await fetchNewsForCompany(name);
+        renderContent();
+        updateStats();
+        resolve();
+      }, i * 400);
+    })
+  );
+
+  await Promise.all(fetchPromises);
+
+  const now = new Date();
+  const lastUpdated = document.getElementById('last-updated');
+  if (lastUpdated) {
+    lastUpdated.textContent = `最終更新: ${now.toLocaleTimeString('ja-JP')}`;
+  }
+
+  isRefreshing = false;
+  refreshBtn?.classList.remove('refreshing');
+}
+
+// --- Events ---
+function addCompany() {
+  const input = document.getElementById('company-input');
+  const name = input.value.trim();
+  if (!name) return;
+  if (companies.includes(name)) {
+    input.value = '';
+    return;
+  }
+  companies.push(name);
+  saveCompanies();
+  input.value = '';
+  render();
+  fetchNewsForCompany(name).then(() => {
+    renderContent();
+    updateStats();
+  });
+}
+
+document.getElementById('add-btn').addEventListener('click', addCompany);
+document.getElementById('company-input').addEventListener('keydown', e => {
+  if (e.key === 'Enter') addCompany();
+});
+document.getElementById('refresh-btn').addEventListener('click', fetchAllNews);
+
+// Tab switching
+document.querySelectorAll('.tab-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    currentView = btn.dataset.view;
+    renderContent();
+  });
+});
+
+// Filter chips
+document.querySelectorAll('.filter-chip').forEach(chip => {
+  chip.addEventListener('click', () => {
+    document.querySelectorAll('.filter-chip').forEach(c => c.classList.remove('active'));
+    chip.classList.add('active');
+    currentFilter = chip.dataset.filter;
+    renderContent();
+    updateStats();
+  });
+});
+
+// Keyword filter
+let filterTimeout;
+document.getElementById('filter-input').addEventListener('input', (e) => {
+  clearTimeout(filterTimeout);
+  filterTimeout = setTimeout(() => {
+    filterKeyword = e.target.value.trim();
+    renderContent();
+  }, 300);
+});
+
+// --- Init ---
+loadCompanies();
+render();
+if (companies.length > 0) {
+  fetchAllNews();
+}
+</script>
+
+</body>
+</html>
