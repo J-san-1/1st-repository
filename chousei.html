@@ -1031,10 +1031,15 @@
 
         // ========== Navigation ==========
         window.navigateTo = function(page, eventId) {
+            // Update state first to prevent hashchange from re-triggering
+            var prevPage = currentPage;
+            var prevEventId = currentEventId;
+            currentPage = page;
+            if (page === 'event') currentEventId = eventId;
+
             document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
 
             if (page === 'event' && eventId) {
-                currentEventId = eventId;
                 window.location.hash = 'event/' + eventId;
                 renderEventDetail(eventId);
             } else if (page === 'create') {
@@ -1045,7 +1050,6 @@
                 renderEventList();
             }
 
-            currentPage = page;
             document.getElementById('page-' + page).classList.add('active');
             window.scrollTo(0, 0);
         };
@@ -1054,14 +1058,19 @@
             const hash = window.location.hash.replace('#', '');
             if (hash.startsWith('event/')) {
                 const id = hash.replace('event/', '');
+                // Skip if already on this event page
+                if (currentPage === 'event' && currentEventId === id) return;
                 if (getEvent(id)) {
                     navigateTo('event', id);
                 } else {
                     navigateTo('top');
                 }
             } else if (hash === 'create') {
+                // Skip if already on create page
+                if (currentPage === 'create') return;
                 navigateTo('create');
             } else {
+                if (currentPage === 'top') return;
                 navigateTo('top');
             }
         }
