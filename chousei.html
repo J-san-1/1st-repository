@@ -1,0 +1,1638 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>みんなの日程調整</title>
+    <style>
+        :root {
+            --primary: #4a90d9;
+            --primary-dark: #3a7bc8;
+            --primary-light: #e8f0fe;
+            --success: #4caf50;
+            --warning: #ff9800;
+            --danger: #f44336;
+            --bg: #f5f7fa;
+            --card-bg: #ffffff;
+            --text: #333333;
+            --text-light: #666666;
+            --border: #e0e0e0;
+            --shadow: 0 2px 8px rgba(0,0,0,0.1);
+            --radius: 8px;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Hiragino Sans', 'Noto Sans JP', sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            line-height: 1.6;
+            min-height: 100vh;
+        }
+
+        /* Header */
+        .header {
+            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+            color: white;
+            padding: 16px 0;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.15);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .header-inner {
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 0 20px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .header h1 {
+            font-size: 1.4rem;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .header h1 .icon {
+            font-size: 1.6rem;
+        }
+
+        .header-nav {
+            display: flex;
+            gap: 12px;
+        }
+
+        .header-nav button {
+            background: rgba(255,255,255,0.2);
+            color: white;
+            border: 1px solid rgba(255,255,255,0.3);
+            padding: 6px 16px;
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 0.85rem;
+            transition: background 0.2s;
+        }
+
+        .header-nav button:hover {
+            background: rgba(255,255,255,0.35);
+        }
+
+        /* Main Content */
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 24px 20px 60px;
+        }
+
+        .page {
+            display: none;
+        }
+
+        .page.active {
+            display: block;
+        }
+
+        /* Card */
+        .card {
+            background: var(--card-bg);
+            border-radius: var(--radius);
+            box-shadow: var(--shadow);
+            padding: 28px;
+            margin-bottom: 20px;
+        }
+
+        .card h2 {
+            font-size: 1.2rem;
+            margin-bottom: 20px;
+            padding-bottom: 12px;
+            border-bottom: 2px solid var(--primary-light);
+            color: var(--primary-dark);
+        }
+
+        .card h3 {
+            font-size: 1rem;
+            margin-bottom: 12px;
+            color: var(--text);
+        }
+
+        /* Form */
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            font-weight: 600;
+            margin-bottom: 6px;
+            font-size: 0.95rem;
+            color: var(--text);
+        }
+
+        .form-group .hint {
+            font-size: 0.8rem;
+            color: var(--text-light);
+            margin-bottom: 6px;
+        }
+
+        .form-group input[type="text"],
+        .form-group textarea {
+            width: 100%;
+            padding: 10px 14px;
+            border: 2px solid var(--border);
+            border-radius: 6px;
+            font-size: 1rem;
+            font-family: inherit;
+            transition: border-color 0.2s;
+            background: #fafafa;
+        }
+
+        .form-group input[type="text"]:focus,
+        .form-group textarea:focus {
+            outline: none;
+            border-color: var(--primary);
+            background: white;
+        }
+
+        .form-group textarea {
+            resize: vertical;
+            min-height: 100px;
+        }
+
+        /* Date Picker Area */
+        .date-picker-area {
+            display: flex;
+            gap: 16px;
+            flex-wrap: wrap;
+            align-items: flex-start;
+        }
+
+        .calendar-widget {
+            flex-shrink: 0;
+        }
+
+        .calendar-widget table {
+            border-collapse: collapse;
+            user-select: none;
+        }
+
+        .calendar-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 8px;
+        }
+
+        .calendar-header button {
+            background: none;
+            border: none;
+            font-size: 1.2rem;
+            cursor: pointer;
+            color: var(--primary);
+            padding: 4px 8px;
+            border-radius: 4px;
+        }
+
+        .calendar-header button:hover {
+            background: var(--primary-light);
+        }
+
+        .calendar-header span {
+            font-weight: 600;
+            font-size: 0.95rem;
+        }
+
+        .calendar-widget th {
+            padding: 6px 4px;
+            text-align: center;
+            font-size: 0.8rem;
+            color: var(--text-light);
+        }
+
+        .calendar-widget td {
+            padding: 2px;
+            text-align: center;
+        }
+
+        .calendar-widget td span {
+            display: inline-flex;
+            width: 34px;
+            height: 34px;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            cursor: pointer;
+            font-size: 0.9rem;
+            transition: all 0.15s;
+        }
+
+        .calendar-widget td span:hover {
+            background: var(--primary-light);
+        }
+
+        .calendar-widget td span.selected {
+            background: var(--primary);
+            color: white;
+        }
+
+        .calendar-widget td span.today {
+            border: 2px solid var(--primary);
+        }
+
+        .calendar-widget td.sun span { color: #e53935; }
+        .calendar-widget td.sat span { color: #1e88e5; }
+        .calendar-widget td.sun span.selected,
+        .calendar-widget td.sat span.selected { color: white; }
+
+        .selected-dates {
+            flex: 1;
+            min-width: 200px;
+        }
+
+        .selected-dates-list {
+            list-style: none;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+
+        .selected-dates-list li {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 8px 12px;
+            background: var(--primary-light);
+            border-radius: 6px;
+            margin-bottom: 6px;
+            font-size: 0.9rem;
+        }
+
+        .selected-dates-list li .remove-date {
+            background: none;
+            border: none;
+            color: var(--danger);
+            cursor: pointer;
+            font-size: 1.1rem;
+            padding: 0 4px;
+            line-height: 1;
+        }
+
+        .time-input-row {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-top: 12px;
+        }
+
+        .time-input-row input {
+            padding: 6px 10px;
+            border: 2px solid var(--border);
+            border-radius: 6px;
+            font-size: 0.9rem;
+            width: 140px;
+        }
+
+        .time-input-row input:focus {
+            outline: none;
+            border-color: var(--primary);
+        }
+
+        .add-time-btn {
+            background: var(--primary);
+            color: white;
+            border: none;
+            padding: 6px 14px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.85rem;
+        }
+
+        .add-time-btn:hover {
+            background: var(--primary-dark);
+        }
+
+        /* Buttons */
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 12px 28px;
+            border: none;
+            border-radius: 6px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-family: inherit;
+        }
+
+        .btn-primary {
+            background: var(--primary);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: var(--primary-dark);
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(74,144,217,0.3);
+        }
+
+        .btn-primary:disabled {
+            background: #aaa;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+
+        .btn-secondary {
+            background: white;
+            color: var(--primary);
+            border: 2px solid var(--primary);
+        }
+
+        .btn-secondary:hover {
+            background: var(--primary-light);
+        }
+
+        .btn-danger {
+            background: var(--danger);
+            color: white;
+        }
+
+        .btn-danger:hover {
+            background: #d32f2f;
+        }
+
+        .btn-sm {
+            padding: 6px 14px;
+            font-size: 0.85rem;
+        }
+
+        .btn-group {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        /* Event Detail */
+        .event-title {
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin-bottom: 8px;
+        }
+
+        .event-memo {
+            color: var(--text-light);
+            white-space: pre-wrap;
+            margin-bottom: 16px;
+            padding: 12px;
+            background: #f9f9f9;
+            border-radius: 6px;
+            font-size: 0.9rem;
+        }
+
+        .share-area {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+            margin-top: 12px;
+            flex-wrap: wrap;
+        }
+
+        .share-area input {
+            flex: 1;
+            min-width: 200px;
+            padding: 8px 12px;
+            border: 2px solid var(--border);
+            border-radius: 6px;
+            font-size: 0.85rem;
+            background: #f9f9f9;
+        }
+
+        .copy-toast {
+            position: fixed;
+            bottom: 30px;
+            left: 50%;
+            transform: translateX(-50%) translateY(100px);
+            background: #333;
+            color: white;
+            padding: 10px 24px;
+            border-radius: 24px;
+            font-size: 0.9rem;
+            opacity: 0;
+            transition: all 0.3s;
+            z-index: 1000;
+        }
+
+        .copy-toast.show {
+            transform: translateX(-50%) translateY(0);
+            opacity: 1;
+        }
+
+        /* Schedule Table */
+        .schedule-table-wrapper {
+            overflow-x: auto;
+            margin: 16px 0;
+            -webkit-overflow-scrolling: touch;
+        }
+
+        .schedule-table {
+            border-collapse: collapse;
+            width: 100%;
+            min-width: 400px;
+            font-size: 0.9rem;
+        }
+
+        .schedule-table th,
+        .schedule-table td {
+            border: 1px solid var(--border);
+            padding: 10px 8px;
+            text-align: center;
+            white-space: nowrap;
+        }
+
+        .schedule-table thead th {
+            background: var(--primary);
+            color: white;
+            font-weight: 600;
+            position: sticky;
+            top: 0;
+        }
+
+        .schedule-table thead th:first-child {
+            background: var(--primary-dark);
+            position: sticky;
+            left: 0;
+            z-index: 2;
+        }
+
+        .schedule-table tbody th {
+            background: #f0f4f8;
+            font-weight: 600;
+            text-align: left;
+            position: sticky;
+            left: 0;
+            z-index: 1;
+            min-width: 140px;
+        }
+
+        .schedule-table .answer-maru {
+            color: var(--success);
+            font-size: 1.3rem;
+            font-weight: bold;
+        }
+
+        .schedule-table .answer-sankaku {
+            color: var(--warning);
+            font-size: 1.3rem;
+            font-weight: bold;
+        }
+
+        .schedule-table .answer-batsu {
+            color: var(--danger);
+            font-size: 1.3rem;
+            font-weight: bold;
+        }
+
+        .schedule-table .total-row th,
+        .schedule-table .total-row td {
+            background: #fff8e1;
+            font-weight: 600;
+        }
+
+        .schedule-table .best-candidate {
+            background: #e8f5e9 !important;
+        }
+
+        .schedule-table .participant-name {
+            font-weight: 600;
+            font-size: 0.85rem;
+            max-width: 80px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .schedule-table .actions-cell {
+            white-space: nowrap;
+        }
+
+        .schedule-table .actions-cell button {
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-size: 0.8rem;
+            padding: 2px 6px;
+            border-radius: 4px;
+            color: var(--primary);
+        }
+
+        .schedule-table .actions-cell button:hover {
+            background: var(--primary-light);
+        }
+
+        .schedule-table .actions-cell .delete-btn {
+            color: var(--danger);
+        }
+
+        .schedule-table .actions-cell .delete-btn:hover {
+            background: #ffebee;
+        }
+
+        /* Answer Input */
+        .answer-form {
+            margin-top: 20px;
+        }
+
+        .answer-row {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 0;
+            border-bottom: 1px solid #f0f0f0;
+        }
+
+        .answer-row .candidate-label {
+            flex: 1;
+            min-width: 120px;
+            font-weight: 500;
+            font-size: 0.9rem;
+        }
+
+        .answer-options {
+            display: flex;
+            gap: 4px;
+        }
+
+        .answer-options button {
+            width: 44px;
+            height: 44px;
+            border: 2px solid var(--border);
+            border-radius: 8px;
+            background: white;
+            cursor: pointer;
+            font-size: 1.2rem;
+            font-weight: bold;
+            transition: all 0.15s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .answer-options button:hover {
+            transform: scale(1.1);
+        }
+
+        .answer-options button.selected-maru {
+            background: #e8f5e9;
+            border-color: var(--success);
+            color: var(--success);
+        }
+
+        .answer-options button.selected-sankaku {
+            background: #fff3e0;
+            border-color: var(--warning);
+            color: var(--warning);
+        }
+
+        .answer-options button.selected-batsu {
+            background: #ffebee;
+            border-color: var(--danger);
+            color: var(--danger);
+        }
+
+        /* Comment Section */
+        .comment-section {
+            margin-top: 20px;
+        }
+
+        .comment-list {
+            list-style: none;
+            margin-top: 12px;
+        }
+
+        .comment-list li {
+            padding: 12px;
+            background: #f9f9f9;
+            border-radius: 6px;
+            margin-bottom: 8px;
+            font-size: 0.9rem;
+        }
+
+        .comment-list li .comment-author {
+            font-weight: 600;
+            color: var(--primary-dark);
+            margin-right: 8px;
+        }
+
+        .comment-list li .comment-time {
+            font-size: 0.75rem;
+            color: #999;
+            margin-left: 8px;
+        }
+
+        /* Top Page */
+        .top-hero {
+            text-align: center;
+            padding: 40px 20px;
+        }
+
+        .top-hero h2 {
+            font-size: 1.6rem;
+            border: none;
+            color: var(--text);
+            margin-bottom: 12px;
+            padding-bottom: 0;
+        }
+
+        .top-hero p {
+            color: var(--text-light);
+            margin-bottom: 24px;
+            font-size: 1rem;
+        }
+
+        .steps {
+            display: flex;
+            gap: 16px;
+            margin: 32px 0;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        .step {
+            flex: 1;
+            min-width: 180px;
+            max-width: 260px;
+            text-align: center;
+            padding: 20px;
+        }
+
+        .step .step-num {
+            display: inline-flex;
+            width: 40px;
+            height: 40px;
+            align-items: center;
+            justify-content: center;
+            background: var(--primary);
+            color: white;
+            border-radius: 50%;
+            font-weight: 700;
+            font-size: 1.1rem;
+            margin-bottom: 12px;
+        }
+
+        .step h3 {
+            margin-bottom: 6px;
+            font-size: 1rem;
+        }
+
+        .step p {
+            font-size: 0.85rem;
+            color: var(--text-light);
+        }
+
+        /* Event List */
+        .event-list {
+            list-style: none;
+        }
+
+        .event-list li {
+            padding: 16px;
+            border-bottom: 1px solid #f0f0f0;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            cursor: pointer;
+            transition: background 0.15s;
+            border-radius: 6px;
+        }
+
+        .event-list li:hover {
+            background: var(--primary-light);
+        }
+
+        .event-list-info h4 {
+            font-size: 1rem;
+            margin-bottom: 4px;
+        }
+
+        .event-list-info p {
+            font-size: 0.8rem;
+            color: var(--text-light);
+        }
+
+        .event-list-meta {
+            text-align: right;
+            font-size: 0.8rem;
+            color: var(--text-light);
+        }
+
+        .no-events {
+            text-align: center;
+            padding: 32px;
+            color: var(--text-light);
+        }
+
+        /* Delete Confirm */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0,0,0,0.4);
+            z-index: 200;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal-overlay.active {
+            display: flex;
+        }
+
+        .modal {
+            background: white;
+            border-radius: var(--radius);
+            padding: 28px;
+            max-width: 400px;
+            width: 90%;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.2);
+        }
+
+        .modal h3 {
+            margin-bottom: 12px;
+        }
+
+        .modal p {
+            margin-bottom: 20px;
+            color: var(--text-light);
+            font-size: 0.9rem;
+        }
+
+        .modal .btn-group {
+            justify-content: flex-end;
+        }
+
+        /* Responsive */
+        @media (max-width: 600px) {
+            .header h1 {
+                font-size: 1.1rem;
+            }
+
+            .container {
+                padding: 16px 12px 60px;
+            }
+
+            .card {
+                padding: 20px 16px;
+            }
+
+            .date-picker-area {
+                flex-direction: column;
+            }
+
+            .top-hero h2 {
+                font-size: 1.3rem;
+            }
+
+            .steps {
+                flex-direction: column;
+                align-items: center;
+            }
+
+            .answer-row {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 6px;
+            }
+
+            .schedule-table {
+                font-size: 0.8rem;
+            }
+
+            .schedule-table th,
+            .schedule-table td {
+                padding: 6px 4px;
+            }
+
+            .answer-options button {
+                width: 40px;
+                height: 40px;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Header -->
+    <div class="header">
+        <div class="header-inner">
+            <h1 onclick="navigateTo('top')"><span class="icon">&#128197;</span> みんなの日程調整</h1>
+            <div class="header-nav">
+                <button onclick="navigateTo('create')">+ イベント作成</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="container">
+
+        <!-- Top Page -->
+        <div id="page-top" class="page active">
+            <div class="card top-hero">
+                <h2>かんたん日程調整ツール</h2>
+                <p>候補日を選んで共有するだけ。みんなの予定をサッと合わせよう！</p>
+                <button class="btn btn-primary" onclick="navigateTo('create')">+ 新しいイベントを作成</button>
+
+                <div class="steps">
+                    <div class="step">
+                        <div class="step-num">1</div>
+                        <h3>イベント作成</h3>
+                        <p>タイトルと候補日を入力してイベントを作成</p>
+                    </div>
+                    <div class="step">
+                        <div class="step-num">2</div>
+                        <h3>URLを共有</h3>
+                        <p>作成されたURLをメンバーに送る</p>
+                    </div>
+                    <div class="step">
+                        <div class="step-num">3</div>
+                        <h3>出欠を入力</h3>
+                        <p>各自が○△×で回答</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card">
+                <h2>作成したイベント一覧</h2>
+                <ul id="event-list" class="event-list"></ul>
+                <div id="no-events" class="no-events" style="display:none;">
+                    まだイベントがありません。新しいイベントを作成しましょう！
+                </div>
+            </div>
+        </div>
+
+        <!-- Create Event Page -->
+        <div id="page-create" class="page">
+            <div class="card">
+                <h2>新しいイベントを作成</h2>
+
+                <div class="form-group">
+                    <label for="event-title">イベント名 *</label>
+                    <input type="text" id="event-title" placeholder="例：忘年会の日程調整" maxlength="100">
+                </div>
+
+                <div class="form-group">
+                    <label for="event-memo">メモ（任意）</label>
+                    <textarea id="event-memo" placeholder="例：場所は新宿周辺で考えています。18時以降で調整したいです。" rows="3"></textarea>
+                </div>
+
+                <div class="form-group">
+                    <label>候補日を選択 *</label>
+                    <div class="hint">カレンダーから日付をクリックして候補日を追加してください</div>
+                    <div class="date-picker-area">
+                        <div class="calendar-widget" id="calendar-widget"></div>
+                        <div class="selected-dates">
+                            <h3>選択した候補日 (<span id="selected-count">0</span>件)</h3>
+                            <ul id="selected-dates-list" class="selected-dates-list"></ul>
+                            <div class="time-input-row">
+                                <input type="text" id="time-suffix" placeholder="例: 19:00〜">
+                                <button class="add-time-btn" onclick="addTimeSuffix()" title="選択中の日付に時間を追加">時間付きで追加</button>
+                            </div>
+                            <div class="hint" style="margin-top:6px;">日付を選択した後、時間帯を入力して「時間付きで追加」を押すと、同じ日に複数の時間帯を追加できます。</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="btn-group">
+                    <button class="btn btn-primary" id="create-btn" onclick="createEvent()">イベントを作成する</button>
+                    <button class="btn btn-secondary" onclick="navigateTo('top')">キャンセル</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Event Detail Page -->
+        <div id="page-event" class="page">
+            <div class="card" id="event-info-card">
+                <div class="event-title" id="detail-title"></div>
+                <div class="event-memo" id="detail-memo"></div>
+                <div class="share-area">
+                    <span style="font-size:0.9rem;font-weight:600;">共有URL:</span>
+                    <input type="text" id="share-url" readonly>
+                    <button class="btn btn-secondary btn-sm" onclick="copyShareUrl()">コピー</button>
+                </div>
+            </div>
+
+            <div class="card">
+                <h2>出欠表</h2>
+                <div class="schedule-table-wrapper" id="schedule-table-wrapper">
+                    <p class="no-events">まだ回答がありません。最初の回答者になりましょう！</p>
+                </div>
+            </div>
+
+            <div class="card" id="answer-card">
+                <h2 id="answer-form-title">出欠を入力する</h2>
+                <div class="answer-form" id="answer-form">
+                    <div class="form-group">
+                        <label for="answer-name">あなたの名前 *</label>
+                        <input type="text" id="answer-name" placeholder="例：田中太郎" maxlength="30">
+                    </div>
+                    <div id="answer-rows"></div>
+                    <div class="form-group" style="margin-top:16px;">
+                        <label for="answer-comment">コメント（任意）</label>
+                        <input type="text" id="answer-comment" placeholder="例：遅れて参加になるかもしれません" maxlength="200">
+                    </div>
+                    <div class="btn-group" style="margin-top:16px;">
+                        <button class="btn btn-primary" id="submit-answer-btn" onclick="submitAnswer()">回答を送信</button>
+                        <button class="btn btn-secondary" id="cancel-edit-btn" onclick="cancelEdit()" style="display:none;">キャンセル</button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card comment-section" id="comment-section">
+                <h2>コメント一覧</h2>
+                <ul id="comment-list" class="comment-list"></ul>
+            </div>
+
+            <div class="card" style="text-align:center;">
+                <button class="btn btn-danger btn-sm" onclick="confirmDeleteEvent()">このイベントを削除する</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast -->
+    <div class="copy-toast" id="toast"></div>
+
+    <!-- Delete Modal -->
+    <div class="modal-overlay" id="delete-modal">
+        <div class="modal">
+            <h3>イベントの削除</h3>
+            <p id="delete-modal-msg">このイベントを本当に削除しますか？この操作は取り消せません。</p>
+            <div class="btn-group">
+                <button class="btn btn-secondary btn-sm" onclick="closeModal()">キャンセル</button>
+                <button class="btn btn-danger btn-sm" id="confirm-delete-btn" onclick="executeDelete()">削除する</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+    (function() {
+        'use strict';
+
+        // ========== State ==========
+        let currentPage = 'top';
+        let currentEventId = null;
+        let editingResponseIndex = -1;
+
+        // Calendar state
+        let calendarYear = new Date().getFullYear();
+        let calendarMonth = new Date().getMonth();
+        let selectedDates = []; // array of strings like "12/25(木)"
+
+        // Delete state
+        let deleteTarget = null; // { type: 'event', id } or { type: 'response', eventId, index }
+
+        // ========== Storage ==========
+        function getEvents() {
+            try {
+                return JSON.parse(localStorage.getItem('chousei_events') || '{}');
+            } catch {
+                return {};
+            }
+        }
+
+        function saveEvents(events) {
+            localStorage.setItem('chousei_events', JSON.stringify(events));
+        }
+
+        function getEvent(id) {
+            return getEvents()[id] || null;
+        }
+
+        function saveEvent(event) {
+            const events = getEvents();
+            events[event.id] = event;
+            saveEvents(events);
+        }
+
+        function deleteEvent(id) {
+            const events = getEvents();
+            delete events[id];
+            saveEvents(events);
+        }
+
+        function generateId() {
+            return Date.now().toString(36) + Math.random().toString(36).substr(2, 6);
+        }
+
+        // ========== Navigation ==========
+        window.navigateTo = function(page, eventId) {
+            document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+
+            if (page === 'event' && eventId) {
+                currentEventId = eventId;
+                window.location.hash = 'event/' + eventId;
+                renderEventDetail(eventId);
+            } else if (page === 'create') {
+                window.location.hash = 'create';
+                resetCreateForm();
+            } else {
+                window.location.hash = '';
+                renderEventList();
+            }
+
+            currentPage = page;
+            document.getElementById('page-' + page).classList.add('active');
+            window.scrollTo(0, 0);
+        };
+
+        function handleHash() {
+            const hash = window.location.hash.replace('#', '');
+            if (hash.startsWith('event/')) {
+                const id = hash.replace('event/', '');
+                if (getEvent(id)) {
+                    navigateTo('event', id);
+                } else {
+                    navigateTo('top');
+                }
+            } else if (hash === 'create') {
+                navigateTo('create');
+            } else {
+                navigateTo('top');
+            }
+        }
+
+        window.addEventListener('hashchange', handleHash);
+
+        // ========== Calendar ==========
+        function renderCalendar() {
+            const widget = document.getElementById('calendar-widget');
+            const dayNames = ['日', '月', '火', '水', '木', '金', '土'];
+            const monthNames = ['1月', '2月', '3月', '4月', '5月', '6月',
+                                '7月', '8月', '9月', '10月', '11月', '12月'];
+
+            const today = new Date();
+            const firstDay = new Date(calendarYear, calendarMonth, 1);
+            const lastDay = new Date(calendarYear, calendarMonth + 1, 0);
+
+            let html = '<div class="calendar-header">';
+            html += '<button onclick="prevMonth()">&lt;</button>';
+            html += '<span>' + calendarYear + '年 ' + monthNames[calendarMonth] + '</span>';
+            html += '<button onclick="nextMonth()">&gt;</button>';
+            html += '</div>';
+
+            html += '<table><thead><tr>';
+            dayNames.forEach((d, i) => {
+                html += '<th>' + d + '</th>';
+            });
+            html += '</tr></thead><tbody>';
+
+            let day = 1;
+            const startDow = firstDay.getDay();
+
+            for (let row = 0; row < 6; row++) {
+                if (day > lastDay.getDate()) break;
+                html += '<tr>';
+                for (let col = 0; col < 7; col++) {
+                    if (row === 0 && col < startDow || day > lastDay.getDate()) {
+                        html += '<td></td>';
+                    } else {
+                        const d = new Date(calendarYear, calendarMonth, day);
+                        const dateStr = formatDateLabel(d);
+                        const isSelected = selectedDates.some(s => s === dateStr || s.startsWith(dateStr + ' '));
+                        const isToday = d.toDateString() === today.toDateString();
+                        const cls = col === 0 ? 'sun' : col === 6 ? 'sat' : '';
+                        const spanCls = (isSelected ? ' selected' : '') + (isToday ? ' today' : '');
+
+                        html += '<td class="' + cls + '">';
+                        html += '<span class="' + spanCls + '" onclick="toggleDate(\'' + dateStr + '\')">' + day + '</span>';
+                        html += '</td>';
+                        day++;
+                    }
+                }
+                html += '</tr>';
+            }
+
+            html += '</tbody></table>';
+            widget.innerHTML = html;
+        }
+
+        function formatDateLabel(date) {
+            const dayNames = ['日', '月', '火', '水', '木', '金', '土'];
+            return (date.getMonth() + 1) + '/' + date.getDate() + '(' + dayNames[date.getDay()] + ')';
+        }
+
+        window.prevMonth = function() {
+            calendarMonth--;
+            if (calendarMonth < 0) {
+                calendarMonth = 11;
+                calendarYear--;
+            }
+            renderCalendar();
+        };
+
+        window.nextMonth = function() {
+            calendarMonth++;
+            if (calendarMonth > 11) {
+                calendarMonth = 0;
+                calendarYear++;
+            }
+            renderCalendar();
+        };
+
+        window.toggleDate = function(dateStr) {
+            const idx = selectedDates.indexOf(dateStr);
+            if (idx >= 0) {
+                selectedDates.splice(idx, 1);
+            } else {
+                selectedDates.push(dateStr);
+                selectedDates.sort(compareDateLabels);
+            }
+            renderCalendar();
+            renderSelectedDates();
+        };
+
+        window.addTimeSuffix = function() {
+            const timeInput = document.getElementById('time-suffix');
+            const time = timeInput.value.trim();
+            if (!time) {
+                showToast('時間を入力してください');
+                return;
+            }
+
+            // Find dates selected in the calendar that we can add time to
+            const baseDates = selectedDates.filter(d => !d.includes(' '));
+            if (baseDates.length === 0) {
+                showToast('先にカレンダーで日付を選択してください');
+                return;
+            }
+
+            baseDates.forEach(d => {
+                const withTime = d + ' ' + time;
+                if (!selectedDates.includes(withTime)) {
+                    selectedDates.push(withTime);
+                }
+            });
+
+            selectedDates.sort(compareDateLabels);
+            timeInput.value = '';
+            renderCalendar();
+            renderSelectedDates();
+        };
+
+        function compareDateLabels(a, b) {
+            const parseDate = s => {
+                const match = s.match(/^(\d+)\/(\d+)/);
+                if (!match) return 0;
+                return parseInt(match[1]) * 100 + parseInt(match[2]);
+            };
+            return parseDate(a) - parseDate(b) || a.localeCompare(b);
+        }
+
+        function renderSelectedDates() {
+            const list = document.getElementById('selected-dates-list');
+            const count = document.getElementById('selected-count');
+            count.textContent = selectedDates.length;
+
+            if (selectedDates.length === 0) {
+                list.innerHTML = '<li style="color:#999;background:none;">候補日が選択されていません</li>';
+                return;
+            }
+
+            list.innerHTML = selectedDates.map((d, i) =>
+                '<li><span>' + escapeHtml(d) + '</span>' +
+                '<button class="remove-date" onclick="removeDate(' + i + ')" title="削除">&times;</button></li>'
+            ).join('');
+        }
+
+        window.removeDate = function(index) {
+            selectedDates.splice(index, 1);
+            renderCalendar();
+            renderSelectedDates();
+        };
+
+        // ========== Create Event ==========
+        function resetCreateForm() {
+            document.getElementById('event-title').value = '';
+            document.getElementById('event-memo').value = '';
+            selectedDates = [];
+            calendarYear = new Date().getFullYear();
+            calendarMonth = new Date().getMonth();
+            renderCalendar();
+            renderSelectedDates();
+        }
+
+        window.createEvent = function() {
+            const title = document.getElementById('event-title').value.trim();
+            const memo = document.getElementById('event-memo').value.trim();
+
+            if (!title) {
+                showToast('イベント名を入力してください');
+                document.getElementById('event-title').focus();
+                return;
+            }
+
+            if (selectedDates.length === 0) {
+                showToast('候補日を1つ以上選択してください');
+                return;
+            }
+
+            const event = {
+                id: generateId(),
+                title: title,
+                memo: memo,
+                candidates: [...selectedDates],
+                responses: [],
+                comments: [],
+                createdAt: new Date().toISOString()
+            };
+
+            saveEvent(event);
+            showToast('イベントを作成しました！');
+            navigateTo('event', event.id);
+        };
+
+        // ========== Event List ==========
+        function renderEventList() {
+            const events = getEvents();
+            const list = document.getElementById('event-list');
+            const noEvents = document.getElementById('no-events');
+
+            const eventArray = Object.values(events).sort((a, b) =>
+                new Date(b.createdAt) - new Date(a.createdAt)
+            );
+
+            if (eventArray.length === 0) {
+                list.innerHTML = '';
+                noEvents.style.display = 'block';
+                return;
+            }
+
+            noEvents.style.display = 'none';
+            list.innerHTML = eventArray.map(e => {
+                const respCount = e.responses ? e.responses.length : 0;
+                const candCount = e.candidates ? e.candidates.length : 0;
+                const created = new Date(e.createdAt);
+                const dateStr = (created.getMonth() + 1) + '/' + created.getDate();
+
+                return '<li onclick="navigateTo(\'event\', \'' + e.id + '\')">' +
+                    '<div class="event-list-info">' +
+                    '<h4>' + escapeHtml(e.title) + '</h4>' +
+                    '<p>候補日: ' + candCount + '件 / 回答: ' + respCount + '人</p>' +
+                    '</div>' +
+                    '<div class="event-list-meta">' + dateStr + ' 作成</div>' +
+                    '</li>';
+            }).join('');
+        }
+
+        // ========== Event Detail ==========
+        function renderEventDetail(eventId) {
+            const event = getEvent(eventId);
+            if (!event) {
+                navigateTo('top');
+                return;
+            }
+
+            document.getElementById('detail-title').textContent = event.title;
+
+            const memoEl = document.getElementById('detail-memo');
+            if (event.memo) {
+                memoEl.textContent = event.memo;
+                memoEl.style.display = 'block';
+            } else {
+                memoEl.style.display = 'none';
+            }
+
+            // Share URL
+            const url = window.location.origin + window.location.pathname + '#event/' + event.id;
+            document.getElementById('share-url').value = url;
+
+            // Render table
+            renderScheduleTable(event);
+
+            // Render answer form
+            renderAnswerForm(event);
+
+            // Render comments
+            renderComments(event);
+        }
+
+        function renderScheduleTable(event) {
+            const wrapper = document.getElementById('schedule-table-wrapper');
+
+            if (!event.responses || event.responses.length === 0) {
+                wrapper.innerHTML = '<p class="no-events">まだ回答がありません。最初の回答者になりましょう！</p>';
+                return;
+            }
+
+            const candidates = event.candidates;
+            const responses = event.responses;
+
+            // Calculate totals
+            const totals = candidates.map((_, ci) => {
+                let maru = 0, sankaku = 0, batsu = 0;
+                responses.forEach(r => {
+                    const a = r.answers[ci];
+                    if (a === '○') maru++;
+                    else if (a === '△') sankaku++;
+                    else batsu++;
+                });
+                return { maru, sankaku, batsu, score: maru * 2 + sankaku };
+            });
+
+            const maxScore = Math.max(...totals.map(t => t.score));
+
+            let html = '<table class="schedule-table">';
+
+            // Header
+            html += '<thead><tr><th>日程</th>';
+            responses.forEach(r => {
+                html += '<th class="participant-name">' + escapeHtml(r.name) + '</th>';
+            });
+            html += '<th>○</th><th>△</th><th>×</th>';
+            html += '</tr></thead>';
+
+            // Body
+            html += '<tbody>';
+            candidates.forEach((c, ci) => {
+                const isBest = totals[ci].score === maxScore && maxScore > 0;
+                const rowCls = isBest ? ' class="best-candidate"' : '';
+
+                html += '<tr' + rowCls + '>';
+                html += '<th' + (isBest ? ' class="best-candidate"' : '') + '>' +
+                    (isBest ? '&#11088; ' : '') + escapeHtml(c) + '</th>';
+
+                responses.forEach(r => {
+                    const a = r.answers[ci] || '×';
+                    let cls = 'answer-batsu';
+                    if (a === '○') cls = 'answer-maru';
+                    else if (a === '△') cls = 'answer-sankaku';
+                    html += '<td class="' + cls + '">' + a + '</td>';
+                });
+
+                html += '<td><strong>' + totals[ci].maru + '</strong></td>';
+                html += '<td>' + totals[ci].sankaku + '</td>';
+                html += '<td>' + totals[ci].batsu + '</td>';
+                html += '</tr>';
+            });
+
+            // Actions row
+            html += '<tr><th>操作</th>';
+            responses.forEach((r, ri) => {
+                html += '<td class="actions-cell">' +
+                    '<button onclick="editResponse(' + ri + ')" title="編集">編集</button>' +
+                    '<button class="delete-btn" onclick="confirmDeleteResponse(' + ri + ')" title="削除">削除</button>' +
+                    '</td>';
+            });
+            html += '<td colspan="3"></td>';
+            html += '</tr>';
+
+            html += '</tbody></table>';
+            wrapper.innerHTML = html;
+        }
+
+        function renderAnswerForm(event) {
+            const rows = document.getElementById('answer-rows');
+
+            rows.innerHTML = event.candidates.map((c, ci) => {
+                return '<div class="answer-row">' +
+                    '<div class="candidate-label">' + escapeHtml(c) + '</div>' +
+                    '<div class="answer-options">' +
+                    '<button id="ans-' + ci + '-maru" onclick="setAnswer(' + ci + ', \'○\')" title="参加可能">○</button>' +
+                    '<button id="ans-' + ci + '-sankaku" onclick="setAnswer(' + ci + ', \'△\')" title="未定">△</button>' +
+                    '<button id="ans-' + ci + '-batsu" onclick="setAnswer(' + ci + ', \'×\')" title="参加不可">×</button>' +
+                    '</div></div>';
+            }).join('');
+
+            // Default all to ○
+            if (editingResponseIndex < 0) {
+                event.candidates.forEach((_, ci) => {
+                    setAnswer(ci, '○');
+                });
+            }
+        }
+
+        // Answer state
+        let currentAnswers = {};
+
+        window.setAnswer = function(candidateIndex, value) {
+            currentAnswers[candidateIndex] = value;
+
+            // Update UI
+            const options = ['maru', 'sankaku', 'batsu'];
+            const values = ['○', '△', '×'];
+
+            options.forEach((opt, i) => {
+                const btn = document.getElementById('ans-' + candidateIndex + '-' + opt);
+                if (btn) {
+                    btn.className = values[i] === value ? 'selected-' + opt : '';
+                }
+            });
+        };
+
+        window.submitAnswer = function() {
+            const nameInput = document.getElementById('answer-name');
+            const name = nameInput.value.trim();
+            const comment = document.getElementById('answer-comment').value.trim();
+
+            if (!name) {
+                showToast('名前を入力してください');
+                nameInput.focus();
+                return;
+            }
+
+            const event = getEvent(currentEventId);
+            if (!event) return;
+
+            const answers = event.candidates.map((_, ci) => currentAnswers[ci] || '×');
+
+            if (editingResponseIndex >= 0) {
+                // Update existing
+                event.responses[editingResponseIndex].name = name;
+                event.responses[editingResponseIndex].answers = answers;
+                if (comment) {
+                    event.comments.push({
+                        name: name,
+                        text: comment,
+                        time: new Date().toISOString()
+                    });
+                }
+                editingResponseIndex = -1;
+                document.getElementById('answer-form-title').textContent = '出欠を入力する';
+                document.getElementById('submit-answer-btn').textContent = '回答を送信';
+                document.getElementById('cancel-edit-btn').style.display = 'none';
+                showToast('回答を更新しました');
+            } else {
+                // New response
+                event.responses.push({ name, answers });
+                if (comment) {
+                    if (!event.comments) event.comments = [];
+                    event.comments.push({
+                        name: name,
+                        text: comment,
+                        time: new Date().toISOString()
+                    });
+                }
+                showToast('回答を送信しました');
+            }
+
+            saveEvent(event);
+
+            // Reset form
+            nameInput.value = '';
+            document.getElementById('answer-comment').value = '';
+            currentAnswers = {};
+
+            renderEventDetail(currentEventId);
+        };
+
+        window.editResponse = function(index) {
+            const event = getEvent(currentEventId);
+            if (!event || !event.responses[index]) return;
+
+            editingResponseIndex = index;
+            const resp = event.responses[index];
+
+            document.getElementById('answer-name').value = resp.name;
+            document.getElementById('answer-comment').value = '';
+            document.getElementById('answer-form-title').textContent = resp.name + ' さんの回答を編集';
+            document.getElementById('submit-answer-btn').textContent = '回答を更新';
+            document.getElementById('cancel-edit-btn').style.display = 'inline-flex';
+
+            // Set answers
+            resp.answers.forEach((a, ci) => {
+                setAnswer(ci, a);
+            });
+
+            // Scroll to form
+            document.getElementById('answer-card').scrollIntoView({ behavior: 'smooth' });
+        };
+
+        window.cancelEdit = function() {
+            editingResponseIndex = -1;
+            document.getElementById('answer-name').value = '';
+            document.getElementById('answer-comment').value = '';
+            document.getElementById('answer-form-title').textContent = '出欠を入力する';
+            document.getElementById('submit-answer-btn').textContent = '回答を送信';
+            document.getElementById('cancel-edit-btn').style.display = 'none';
+
+            const event = getEvent(currentEventId);
+            if (event) {
+                event.candidates.forEach((_, ci) => setAnswer(ci, '○'));
+            }
+        };
+
+        // ========== Comments ==========
+        function renderComments(event) {
+            const section = document.getElementById('comment-section');
+            const list = document.getElementById('comment-list');
+
+            if (!event.comments || event.comments.length === 0) {
+                section.style.display = 'none';
+                return;
+            }
+
+            section.style.display = 'block';
+            list.innerHTML = event.comments.map(c => {
+                const time = new Date(c.time);
+                const timeStr = (time.getMonth() + 1) + '/' + time.getDate() + ' ' +
+                    time.getHours() + ':' + String(time.getMinutes()).padStart(2, '0');
+                return '<li><span class="comment-author">' + escapeHtml(c.name) + '</span>' +
+                    escapeHtml(c.text) +
+                    '<span class="comment-time">' + timeStr + '</span></li>';
+            }).join('');
+        }
+
+        // ========== Delete ==========
+        window.confirmDeleteEvent = function() {
+            deleteTarget = { type: 'event', id: currentEventId };
+            document.getElementById('delete-modal-msg').textContent =
+                'このイベントを本当に削除しますか？この操作は取り消せません。';
+            document.getElementById('delete-modal').classList.add('active');
+        };
+
+        window.confirmDeleteResponse = function(index) {
+            const event = getEvent(currentEventId);
+            if (!event || !event.responses[index]) return;
+            deleteTarget = { type: 'response', eventId: currentEventId, index: index };
+            document.getElementById('delete-modal-msg').textContent =
+                event.responses[index].name + ' さんの回答を削除しますか？';
+            document.getElementById('delete-modal').classList.add('active');
+        };
+
+        window.executeDelete = function() {
+            if (!deleteTarget) return;
+
+            if (deleteTarget.type === 'event') {
+                deleteEvent(deleteTarget.id);
+                showToast('イベントを削除しました');
+                closeModal();
+                navigateTo('top');
+            } else if (deleteTarget.type === 'response') {
+                const event = getEvent(deleteTarget.eventId);
+                if (event) {
+                    event.responses.splice(deleteTarget.index, 1);
+                    saveEvent(event);
+                    showToast('回答を削除しました');
+                    closeModal();
+                    renderEventDetail(deleteTarget.eventId);
+                }
+            }
+
+            deleteTarget = null;
+        };
+
+        window.closeModal = function() {
+            document.getElementById('delete-modal').classList.remove('active');
+            deleteTarget = null;
+        };
+
+        // ========== Share / Copy ==========
+        window.copyShareUrl = function() {
+            const input = document.getElementById('share-url');
+            input.select();
+            input.setSelectionRange(0, 99999);
+
+            if (navigator.clipboard) {
+                navigator.clipboard.writeText(input.value).then(() => {
+                    showToast('URLをコピーしました！');
+                }).catch(() => {
+                    document.execCommand('copy');
+                    showToast('URLをコピーしました！');
+                });
+            } else {
+                document.execCommand('copy');
+                showToast('URLをコピーしました！');
+            }
+        };
+
+        // ========== Utilities ==========
+        function escapeHtml(str) {
+            const div = document.createElement('div');
+            div.appendChild(document.createTextNode(str));
+            return div.innerHTML;
+        }
+
+        function showToast(msg) {
+            const toast = document.getElementById('toast');
+            toast.textContent = msg;
+            toast.classList.add('show');
+            setTimeout(() => toast.classList.remove('show'), 2500);
+        }
+
+        // ========== Init ==========
+        function init() {
+            renderCalendar();
+            renderSelectedDates();
+            handleHash();
+        }
+
+        init();
+    })();
+    </script>
+</body>
+</html>
