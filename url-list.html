@@ -279,7 +279,7 @@ async function loadPages() {
       .map(item => ({
         name: item.name,
         size: item.size,
-        url: BASE_URL + (item.name === 'index.html' ? '' : item.name),
+        url: BASE_URL + item.name,
         directUrl: BASE_URL + item.name,
         sha: item.sha
       }));
@@ -325,7 +325,7 @@ async function loadPages() {
       // フォールバック: 既知のページ一覧を表示
       const fallbackPages = Object.entries(KNOWN_PAGES).map(([name, info]) => ({
         name,
-        url: BASE_URL + (name === 'index.html' ? '' : name),
+        url: BASE_URL + name,
         directUrl: BASE_URL + name,
         title: info.title,
         description: info.description,
